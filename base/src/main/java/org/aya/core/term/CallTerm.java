@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.term;
 
+import kala.collection.Map;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.api.ref.DefVar;
@@ -46,7 +47,7 @@ public sealed interface CallTerm extends Term {
   static @NotNull Term make(IntroTerm.Lambda lam, @NotNull Arg<Term> arg) {
     var param = lam.param();
     assert arg.explicit() == param.explicit();
-    return lam.body().subst(param.ref(), arg.term());
+    return lam.body().subst(Map.of(param.ref(), arg.term()));
   }
 
   record Fn(

@@ -52,19 +52,15 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
     return TermToPat.toPat(this, explicit);
   }
 
-  default @NotNull Term subst(@NotNull Var var, @NotNull Term term) {
-    return subst(new Substituter.TermSubst(var, term));
-  }
-
   default @NotNull Term subst(@NotNull Substituter.TermSubst subst) {
-    return subst(subst, LevelSubst.EMPTY);
+    return subst(subst.map());
   }
 
   default @NotNull Term subst(@NotNull Map<Var, Term> subst) {
-    return accept(new Substituter(subst, LevelSubst.EMPTY), Unit.unit());
+    return subst(subst, LevelSubst.EMPTY);
   }
 
-  default @NotNull Term subst(@NotNull Substituter.TermSubst subst, @NotNull LevelSubst levelSubst) {
+  default @NotNull Term subst(@NotNull Map<Var, Term> subst, @NotNull LevelSubst levelSubst) {
     return accept(new Substituter(subst, levelSubst), Unit.unit());
   }
 
@@ -179,22 +175,23 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
     }
 
     public @NotNull Param subst(@NotNull Substituter.TermSubst subst) {
-      return subst(subst, LevelSubst.EMPTY);
+      return subst(subst.map(), LevelSubst.EMPTY);
     }
 
     public static @NotNull ImmutableSeq<Param> subst(
       @NotNull ImmutableSeq<@NotNull Param> params,
-      @NotNull Substituter.TermSubst subst, @NotNull LevelSubst levelSubst
+      @NotNull Substituter.TermSubst subst,
+      @NotNull LevelSubst levelSubst
     ) {
-      return params.map(param -> param.subst(subst, levelSubst));
+      return params.map(param -> param.subst(subst.map(), levelSubst));
     }
 
     public static @NotNull ImmutableSeq<Param>
     subst(@NotNull ImmutableSeq<@NotNull Param> params, @NotNull LevelSubst levelSubst) {
-      return subst(params, Substituter.TermSubst.EMPTY, levelSubst);
+      return params.map(param -> param.subst(Map.empty(), levelSubst));
     }
 
-    public @NotNull Param subst(@NotNull Substituter.TermSubst subst, @NotNull LevelSubst levelSubst) {
+    public @NotNull Param subst(@NotNull Map<Var, Term> subst, @NotNull LevelSubst levelSubst) {
       return new Param(ref, type.subst(subst, levelSubst), explicit);
     }
 

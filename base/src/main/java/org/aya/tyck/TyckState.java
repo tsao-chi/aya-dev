@@ -5,6 +5,7 @@ package org.aya.tyck;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.mutable.DynamicSeq;
 import kala.collection.mutable.MutableMap;
+import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import kala.tuple.Unit;
@@ -13,11 +14,14 @@ import org.aya.api.distill.DistillerOptions;
 import org.aya.api.error.Reporter;
 import org.aya.api.error.SourcePos;
 import org.aya.api.ref.LocalVar;
+import org.aya.api.ref.Var;
 import org.aya.api.util.WithPos;
 import org.aya.core.Meta;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.term.CallTerm;
 import org.aya.core.term.RefTerm;
 import org.aya.core.term.Term;
+import org.aya.core.visitor.Substituter;
 import org.aya.core.visitor.TermConsumer;
 import org.aya.core.visitor.VarConsumer;
 import org.aya.pretty.doc.Doc;
@@ -36,13 +40,23 @@ public record TyckState(
   @NotNull DynamicSeq<Eqn> eqns,
   @NotNull DynamicSeq<WithPos<Meta>> activeMetas,
   @NotNull LevelEqnSet levelEqns,
+  @NotNull MutableMap<@NotNull Meta, @NotNull MutableMap<Var, Term>> metaSubsts,
   @NotNull MutableMap<@NotNull Meta, @NotNull Term> metas
 ) {
   // Use carefully!!
   public static final @NotNull TyckState EMPTY = new TyckState();
 
   public TyckState() {
-    this(DynamicSeq.create(), DynamicSeq.create(), new LevelEqnSet(), MutableMap.create());
+    this(DynamicSeq.create(), DynamicSeq.create(), new LevelEqnSet(), MutableMap.create(), MutableMap.create());
+  }
+
+  public @NotNull MutableMap<Var, Term> metaSubst(@NotNull Meta meta) {
+    return metaSubsts.getOrPut(meta, MutableMap::create);
+  }
+
+  public @NotNull Option<@NotNull Term> meta(@NotNull Meta meta) {
+    var subst = new Substituter.TermSubst(metaSubst(meta), this);
+    return metas.getOption(meta).map(term -> term.subst(subst, LevelSubst.EMPTY));
   }
 
   public void solveEqn(

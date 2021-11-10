@@ -23,6 +23,8 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
     var args = term.args().map(arg -> visitArg(arg, p));
     if (term.contextArgs().sameElements(contextArgs, true)
       && term.args().sameElements(args, true)) return term;
+    var meta = state().meta(term.ref());
+    if (meta.isDefined()) meta.get().accept(this, p);
     return new CallTerm.Hole(term.ref(), contextArgs, args);
   }
   @Override

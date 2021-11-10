@@ -88,12 +88,11 @@ public interface Unfolder<P> extends TermFixpoint<P> {
   default @NotNull Term visitHole(@NotNull CallTerm.Hole hole, P p) {
     var def = hole.ref();
     // Not yet type checked
-    var metas = state().metas();
-    if (!metas.containsKey(def)) return hole;
-    var body = metas.get(def);
+    var meta = state().meta(def);
+    if (meta.isEmpty()) return hole;
     var args = hole.fullArgs().map(arg -> visitArg(arg, p)).toImmutableSeq();
     var subst = checkAndBuildSubst(def.fullTelescope(), args);
-    return body.subst(subst, LevelSubst.EMPTY).accept(this, p);
+    return meta.get().subst(subst, LevelSubst.EMPTY).accept(this, p);
   }
 
   default @Nullable WithPos<Term> tryUnfoldClauses(

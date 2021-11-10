@@ -13,6 +13,7 @@ import org.aya.api.distill.DistillerOptions;
 import org.aya.api.ref.Var;
 import org.aya.core.sort.LevelSubst;
 import org.aya.core.sort.Sort;
+import org.aya.core.term.CallTerm;
 import org.aya.core.term.RefTerm;
 import org.aya.core.term.Term;
 import org.aya.distill.BaseDistiller;
@@ -28,11 +29,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public record Substituter(
   @NotNull Map<Var, Term> termSubst,
-  @NotNull TyckState state,
+  @Override @NotNull TyckState state,
   @NotNull LevelSubst levelSubst
 ) implements TermFixpoint<Unit> {
   public Substituter(@NotNull TermSubst termSubst, @NotNull LevelSubst levelSubst) {
     this(termSubst.map, termSubst.state, levelSubst);
+  }
+
+  @Override public @NotNull Term visitHole(CallTerm.@NotNull Hole term, Unit unit) {
+    state.metaSubsts().getOrPut(term.ref(), MutableMap::create)
+      .putAll(termSubst);
+    return TermFixpoint.super.visitHole(term, unit);
   }
 
   @Override public @NotNull Sort visitSort(@NotNull Sort sort, Unit unit) {

@@ -90,9 +90,9 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
 
       @Override public @NotNull Term visitHole(CallTerm.@NotNull Hole term, Unit unit) {
         var sol = term.ref();
-        var metas = state.metas();
-        if (!metas.containsKey(sol)) return TermFixpoint.super.visitHole(term, unit);
-        return metas.get(sol).accept(this, Unit.unit());
+        var meta = state.meta(sol);
+        if (meta.isEmpty()) return TermFixpoint.super.visitHole(term, unit);
+        return meta.get().accept(this, Unit.unit());
       }
 
       @Override public @NotNull Sort visitSort(@NotNull Sort sort, Unit unit) {

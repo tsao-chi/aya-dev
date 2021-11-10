@@ -65,15 +65,15 @@ public final class Zonker implements TermFixpoint<Unit> {
 
   @Contract(pure = true) @Override public @NotNull Term visitHole(@NotNull CallTerm.Hole term, Unit unit) {
     var sol = term.ref();
-    var metas = state.metas();
-    if (!metas.containsKey(sol)) {
+    var meta = state.meta(sol);
+    if (meta.isEmpty()) {
       reporter.report(new UnsolvedMeta(stack.view()
         .drop(1)
         .map(t -> t.freezeHoles(state))
         .toImmutableSeq(), sol.sourcePos, sol.name));
       return new ErrorTerm(term);
     }
-    return metas.get(sol).accept(this, Unit.unit());
+    return meta.get().accept(this, Unit.unit());
   }
 
   @Override public @Nullable Sort visitSort(@NotNull Sort sort, Unit unit) {

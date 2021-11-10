@@ -41,9 +41,9 @@ public record Goal(
             )))))
         : Doc.empty()
     );
-    var metas = state.metas();
-    return !metas.containsKey(meta) ? doc :
-      Doc.vcat(Doc.plain("Candidate exists:"), Doc.par(1, metas.get(meta).toDoc(options)), doc);
+    var sol = state.meta(meta);
+    return sol.isEmpty() ? doc :
+      Doc.vcat(Doc.plain("Candidate exists:"), Doc.par(1, sol.get().toDoc(options)), doc);
   }
 
   @Override public @NotNull SourcePos sourcePos() {

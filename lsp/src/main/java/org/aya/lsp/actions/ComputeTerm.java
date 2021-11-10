@@ -10,6 +10,7 @@ import org.aya.core.term.Term;
 import org.aya.lsp.models.ComputeTermResult;
 import org.aya.lsp.server.AyaService;
 import org.aya.lsp.utils.XY;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,10 +22,10 @@ public final class ComputeTerm implements SyntaxNodeAction {
   private final @NotNull Kind kind;
 
   public enum Kind {
-    Type(term -> term.computeType(null)),
+    Type(term -> term.computeType(TyckState.EMPTY)),
     Id(Function.identity()),
-    Nf(term -> term.normalize(null, NormalizeMode.NF)),
-    Whnf(term -> term.normalize(null, NormalizeMode.WHNF)),
+    Nf(term -> term.normalize(TyckState.EMPTY, NormalizeMode.NF)),
+    Whnf(term -> term.normalize(TyckState.EMPTY, NormalizeMode.WHNF)),
     ;
     private final Function<Term, Term> map;
 

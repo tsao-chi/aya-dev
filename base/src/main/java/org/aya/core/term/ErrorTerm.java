@@ -7,6 +7,7 @@ import org.aya.distill.BaseDistiller;
 import org.aya.distill.CoreDistiller;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Style;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public record ErrorTerm(@NotNull AyaDocile description, boolean isReallyError) implements Term {
   public ErrorTerm(@NotNull Term description) {
-    this((AyaDocile) description.freezeHoles(null));
+    this((AyaDocile) description.freezeHoles(TyckState.EMPTY));
   }
 
   public ErrorTerm(@NotNull AyaDocile description) {
@@ -33,7 +34,7 @@ public record ErrorTerm(@NotNull AyaDocile description, boolean isReallyError) i
   }
 
   public static @NotNull ErrorTerm typeOf(@NotNull Term origin) {
-    return typeOf((AyaDocile) origin.freezeHoles(null));
+    return typeOf((AyaDocile) origin.freezeHoles(TyckState.EMPTY));
   }
 
   public static @NotNull ErrorTerm typeOf(@NotNull AyaDocile origin) {

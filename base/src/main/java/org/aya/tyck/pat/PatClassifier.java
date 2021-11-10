@@ -19,6 +19,7 @@ import org.aya.core.def.PrimDef;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatMatcher;
 import org.aya.core.pat.PatUnify;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.term.*;
 import org.aya.core.visitor.Substituter;
 import org.aya.tyck.ExprTycker;
@@ -67,13 +68,13 @@ public record PatClassifier(
       for (int i = 1, size = contents.size(); i < size; i++) {
         var lhsInfo = contents.get(i - 1);
         var rhsInfo = contents.get(i);
-        var lhsSubst = new Substituter.TermSubst(MutableMap.create());
-        var rhsSubst = new Substituter.TermSubst(MutableMap.create());
+        var lhsSubst = new Substituter.TermSubst(MutableMap.create(), tycker.state);
+        var rhsSubst = new Substituter.TermSubst(MutableMap.create(), tycker.state);
         PatUnify.unifyPat(lhsInfo._2.patterns(), rhsInfo._2.patterns(), lhsSubst, rhsSubst);
         domination(rhsSubst, tycker.reporter, lhsInfo._1, rhsInfo._1, rhsInfo._2);
         domination(lhsSubst, tycker.reporter, rhsInfo._1, lhsInfo._1, lhsInfo._2);
-        var lhsTerm = lhsInfo._2.body().subst(lhsSubst);
-        var rhsTerm = rhsInfo._2.body().subst(rhsSubst);
+        var lhsTerm = lhsInfo._2.body().subst(lhsSubst, LevelSubst.EMPTY);
+        var rhsTerm = rhsInfo._2.body().subst(rhsSubst, LevelSubst.EMPTY);
         // TODO: Currently all holes at this point is in an ErrorTerm
         if (lhsTerm instanceof ErrorTerm error && error.description() instanceof CallTerm.Hole hole) {
           hole.ref().conditions.append(Tuple.of(lhsSubst, rhsTerm));
@@ -148,7 +149,7 @@ public record PatClassifier(
           // Do it!! Just do it!!
           var newTele = telescope.view()
             .drop(1)
-            .map(param -> param.subst(target.ref(), thatTuple))
+            .map(param -> param.subst(state, target.ref(), thatTuple))
             .toImmutableSeq();
           // Classify according to the tuple elements
           var fuelCopy = fuel;
@@ -185,7 +186,7 @@ public record PatClassifier(
               var lrCall = new CallTerm.Prim(prim.get().ref, ImmutableSeq.empty(), ImmutableSeq.empty());
               var newTele = telescope.view()
                 .drop(1)
-                .map(param -> param.subst(target.ref(), lrCall))
+                .map(param -> param.subst(state, target.ref(), lrCall))
                 .toImmutableSeq();
               // Classify according the rest of the patterns
               var rest = classifySub(newTele, classes, false, fuel);
@@ -211,10 +212,10 @@ public record PatClassifier(
           var conTele = ctor.selfTele;
           // Check if this constructor is available by doing the obvious thing
           if (ctor.pats.isNotEmpty()) {
-            var matchy = PatMatcher.tryBuildSubstArgs(ctor.pats, dataCall.args());
+            var matchy = PatMatcher.tryBuildSubstArgs(state, ctor.pats, dataCall.args());
             // If not, forget about this constructor
             if (matchy == null) continue;
-            conTele = conTele.map(param -> param.subst(matchy));
+            conTele = conTele.map(param -> param.subst(matchy, LevelSubst.EMPTY));
           }
           // Java wants a final local variable, let's alias it
           var conTeleCapture = conTele;
@@ -245,7 +246,7 @@ public record PatClassifier(
           var conCall = new CallTerm.Con(dataCall.conHead(ctor.ref), conTeleCapture.map(Term.Param::toArg));
           var newTele = telescope.view()
             .drop(1)
-            .map(param -> param.subst(target.ref(), conCall))
+            .map(param -> param.subst(state, target.ref(), conCall))
             .toImmutableSeq();
           var fuelCopy = fuel;
           var rest = classified.flatMap(pat ->

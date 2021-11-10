@@ -21,6 +21,7 @@ import org.aya.concrete.resolve.module.FileModuleLoader;
 import org.aya.concrete.resolve.module.ModuleListLoader;
 import org.aya.core.def.Def;
 import org.aya.core.term.Term;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +84,7 @@ public class ReplCompiler {
           }
         },
         expr -> FileModuleLoader.tyckExpr(context, expr, reporter, null).wellTyped()
-          .normalize(null, normalizeMode)
+          .normalize(TyckState.EMPTY, normalizeMode)
       );
     } catch (InterruptException ignored) {
       return Either.left(ImmutableSeq.empty());
@@ -99,7 +100,7 @@ public class ReplCompiler {
     try {
       var expr = AyaParsing.expr(reporter, text);
       return FileModuleLoader.tyckExpr(context, expr, reporter, null)
-        .type().normalize(null, normalizeMode);
+        .type().normalize(TyckState.EMPTY, normalizeMode);
     } catch (InterruptException ignored) {
       return null;
     }

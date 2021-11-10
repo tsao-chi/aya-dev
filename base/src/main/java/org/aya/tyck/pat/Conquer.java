@@ -61,7 +61,7 @@ public record Conquer(
     var conditions = ctor.ref().core.clauses;
     for (int i = 0, size = conditions.size(); i < size; i++) {
       var condition = conditions.get(i);
-      var matchy = PatMatcher.tryBuildSubstTerms(params, condition.patterns().view().map(Pat::toTerm));
+      var matchy = PatMatcher.tryBuildSubstTerms(tycker.state, params, condition.patterns().view().map(Pat::toTerm));
       if (matchy != null) checkConditions(ctor, nth, i + 1, condition.body(), matchy, condition.sourcePos());
     }
     return Unit.unit();
@@ -69,7 +69,7 @@ public record Conquer(
 
   private void checkConditions(Pat ctor, int nth, int i, Term condition, Substituter.TermSubst matchy, SourcePos conditionPos) {
     var currentClause = matchings.get(nth);
-    var newBody = currentClause.body().subst(matchy);
+    var newBody = currentClause.body().subst(matchy, LevelSubst.EMPTY);
     var newArgs = currentClause.patterns().map(pat -> new Arg<>(pat.accept(new PatToTerm() {
       @Override public Term visitCtor(Pat.@NotNull Ctor newCtor, Unit unit) {
         return newCtor == ctor ? condition : super.visitCtor(newCtor, unit);
@@ -88,7 +88,7 @@ public record Conquer(
       hole.ref().conditions.append(Tuple.of(matchy, newBody));
     }
     var unification = tycker.unifier(sourcePos, Ordering.Eq)
-      .compare(newBody, volynskaya.data(), signature.result().subst(matchy));
+      .compare(newBody, volynskaya.data(), signature.result().subst(matchy, LevelSubst.EMPTY));
     if (!unification) {
       tycker.reporter.report(new ClausesProblem.Conditions(
         sourcePos, nth + 1, i, newBody, volynskaya.data(), conditionPos, currentClause.sourcePos(), volynskaya.sourcePos()));

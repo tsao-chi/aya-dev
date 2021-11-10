@@ -6,6 +6,7 @@ import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableHashMap;
 import kala.collection.mutable.MutableMap;
+import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import org.aya.api.error.Reporter;
 import org.aya.api.error.SourcePos;
@@ -148,7 +149,7 @@ public final class DefEq {
       var li = lu.get(i);
       var head = typesSubst.first();
       if (!compare(li, ru.get(i), head.type())) return false;
-      typesSubst = typesSubst.drop(1).map(type -> type.subst(head.ref(), li));
+      typesSubst = typesSubst.drop(1).map(type -> type.subst(state, head.ref(), li));
     }
     return true;
   }
@@ -160,7 +161,7 @@ public final class DefEq {
     var retType = getType(lhs, lhsRef);
     // Lossy comparison
     var subst = levels(lhsRef, lhs.sortArgs(), rhs.sortArgs());
-    if (visitArgs(lhs.args(), rhs.args(), Term.Param.subst(Def.defTele(lhsRef), subst))) return retType;
+    if (visitArgs(lhs.args(), rhs.args(), Term.Param.subst(Def.defTele(lhsRef), Substituter.TermSubst.EMPTY, subst))) return retType;
     if (compareWHNF(lhs, rhs, retType)) return retType;
     else return null;
   }
@@ -178,11 +179,11 @@ public final class DefEq {
   }
 
   @NotNull private Term getType(@NotNull CallTerm lhs, @NotNull DefVar<? extends Def, ?> lhsRef) {
-    var substMap = MutableMap.<Var, Term>create();
-    for (var pa : lhs.args().view().zip(lhsRef.core.telescope().view())) {
-      substMap.set(pa._2.ref(), pa._1.term());
-    }
-    return lhsRef.core.result().subst(substMap);
+    var substMap = MutableMap.<Var, Term>from(
+      lhs.args().view().zip(lhsRef.core.telescope().view())
+        .map(pa -> Tuple.of(pa._2.ref(), pa._1.term())));
+    var subst = new Substituter.TermSubst(substMap, state);
+    return lhsRef.core.result().subst(subst, LevelSubst.EMPTY);
   }
 
   public static boolean isCall(@NotNull Term term) {
@@ -196,7 +197,7 @@ public final class DefEq {
   private @Nullable Substituter.TermSubst extract(
     @NotNull CallTerm.Hole lhs, @NotNull Term rhs, @NotNull Meta meta
   ) {
-    var subst = new Substituter.TermSubst(new MutableHashMap<>(/*spine.size() * 2*/));
+    var subst = new Substituter.TermSubst(new MutableHashMap<>(/*spine.size() * 2*/), state);
     for (var arg : lhs.args().view().zip(meta.telescope)) {
       if (Eta.uneta(arg._1.term()) instanceof RefTerm ref) {
         if (subst.map().containsKey(ref.var())) return null;
@@ -213,9 +214,10 @@ public final class DefEq {
       default -> compareUntyped(lhs, rhs) != null;
       case CallTerm.Struct type1 -> {
         var fieldSigs = type1.ref().core.fields;
-        var paramSubst = type1.ref().core.telescope().view().zip(type1.args().view()).map(x ->
-          Tuple2.of(x._1.ref(), x._2.term())).<Var, Term>toImmutableMap();
-        var fieldSubst = new Substituter.TermSubst(MutableHashMap.create());
+        var paramSubst = MutableMap.from(type1.ref().core
+          .telescope().view().zip(type1.args().view())
+          .map(x -> Tuple2.of((Var) x._1.ref(), x._2.term())));
+        var subst = new Substituter.TermSubst(paramSubst, state);
         for (var fieldSig : fieldSigs) {
           var dummyVars = fieldSig.selfTele.map(par ->
             new LocalVar(par.ref().name(), par.ref().definition()));
@@ -223,8 +225,9 @@ public final class DefEq {
             new Arg<Term>(new RefTerm(vpa._1, vpa._2.type()), vpa._2.explicit()));
           var l = new CallTerm.Access(lhs, fieldSig.ref(), type1.sortArgs(), type1.args(), dummy);
           var r = new CallTerm.Access(rhs, fieldSig.ref(), type1.sortArgs(), type1.args(), dummy);
-          fieldSubst.add(fieldSig.ref(), l);
-          if (!compare(l, r, fieldSig.result().subst(paramSubst).subst(fieldSubst))) yield false;
+          subst.add(fieldSig.ref(), l);
+          if (!compare(l, r, fieldSig.result().subst(subst, LevelSubst.EMPTY)))
+            yield false;
         }
         yield true;
       }
@@ -239,7 +242,7 @@ public final class DefEq {
           var l = new ElimTerm.Proj(lhs, i);
           var currentParam = params.first();
           if (!compare(l, new ElimTerm.Proj(rhs, i), currentParam.type())) yield false;
-          params = params.drop(1).map(x -> x.subst(currentParam.ref(), l));
+          params = params.drop(1).map(x -> x.subst(state, currentParam.ref(), l));
         }
         yield true;
       }
@@ -248,7 +251,9 @@ public final class DefEq {
         var ty = type1.param().type();
         var dummy = new RefTerm(dummyVar, ty);
         var dummyArg = new Arg<Term>(dummy, type1.param().explicit());
-        yield compare(CallTerm.make(lhs, dummyArg), CallTerm.make(rhs, dummyArg), type1.substBody(dummy));
+        yield compare(CallTerm.make(state, lhs, dummyArg),
+          CallTerm.make(state, rhs, dummyArg),
+          type1.substBody(dummy, state));
       }
     };
     traceExit();
@@ -272,7 +277,7 @@ public final class DefEq {
         var preFnType = compareUntyped(lhs.of(), rhs.of());
         if (!(preFnType instanceof FormTerm.Pi fnType)) yield null;
         if (!compare(lhs.arg().term(), rhs.arg().term(), fnType.param().type())) yield null;
-        yield fnType.substBody(lhs.arg().term());
+        yield fnType.substBody(lhs.arg().term(), state);
       }
       case ElimTerm.Proj lhs -> {
         if (!(preRhs instanceof ElimTerm.Proj rhs)) yield null;
@@ -284,7 +289,7 @@ public final class DefEq {
           var l = new ElimTerm.Proj(lhs, i);
           var currentParam = params.first();
           params = params.view().drop(1)
-            .map(x -> x.subst(currentParam.ref(), l)).toImmutableSeq();
+            .map(x -> x.subst(state, currentParam.ref(), l)).toImmutableSeq();
         }
         if (params.isNotEmpty()) yield params.first().type();
         yield params.last().type();
@@ -316,14 +321,14 @@ public final class DefEq {
       case CallTerm.Data lhs -> {
         if (!(preRhs instanceof CallTerm.Data rhs) || lhs.ref() != rhs.ref()) yield null;
         var subst = levels(lhs.ref(), lhs.sortArgs(), rhs.sortArgs());
-        var args = visitArgs(lhs.args(), rhs.args(), Term.Param.subst(Def.defTele(lhs.ref()), subst));
+        var args = visitArgs(lhs.args(), rhs.args(), Term.Param.subst(Def.defTele(lhs.ref()), Substituter.TermSubst.EMPTY, subst));
         // Do not need to be computed precisely because unification won't need this info
         yield args ? freshUniv() : null;
       }
       case CallTerm.Struct lhs -> {
         if (!(preRhs instanceof CallTerm.Struct rhs) || lhs.ref() != rhs.ref()) yield null;
         var subst = levels(lhs.ref(), lhs.sortArgs(), rhs.sortArgs());
-        var args = visitArgs(lhs.args(), rhs.args(), Term.Param.subst(Def.defTele(lhs.ref()), subst));
+        var args = visitArgs(lhs.args(), rhs.args(), Term.Param.subst(Def.defTele(lhs.ref()), Substituter.TermSubst.EMPTY, subst));
         yield args ? freshUniv() : null;
       }
       case CallTerm.Con lhs -> {
@@ -331,7 +336,7 @@ public final class DefEq {
         var retType = getType(lhs, lhs.ref());
         // Lossy comparison
         var subst = levels(lhs.head().dataRef(), lhs.sortArgs(), rhs.sortArgs());
-        if (visitArgs(lhs.conArgs(), rhs.conArgs(), Term.Param.subst(CtorDef.conTele(lhs.ref()), subst)))
+        if (visitArgs(lhs.conArgs(), rhs.conArgs(), Term.Param.subst(CtorDef.conTele(lhs.ref()), Substituter.TermSubst.EMPTY, subst)))
           yield retType;
         yield null;
       }
@@ -351,7 +356,7 @@ public final class DefEq {
             if (!(holeTy instanceof FormTerm.Pi holePi))
               throw new IllegalStateException("meta arg size larger than param size. this should not happen");
             if (!compare(arg._1.term(), arg._2.term(), holePi.param().type())) yield null;
-            holeTy = holePi.substBody(arg._1.term());
+            holeTy = holePi.substBody(arg._1.term(), state);
           }
           yield holeTy;
         }
@@ -360,7 +365,7 @@ public final class DefEq {
           reporter.report(new HoleProblem.BadSpineError(lhs, pos));
           yield null;
         }
-        var subst = Unfolder.buildSubst(meta.contextTele, lhs.contextArgs());
+        var subst = Unfolder.buildSubst(state, meta.contextTele, lhs.contextArgs());
         // In this case, the solution may not be unique (see #608),
         // so we may delay its resolution to the end of the tycking when we disallow vague unification.
         if (!allowVague && subst.overlap(argSubst).anyMatch(var -> preRhs.findUsages(var) > 0)) {
@@ -370,7 +375,7 @@ public final class DefEq {
         }
         subst.add(argSubst);
         varSubst.forEach(subst::add);
-        var solved = preRhs.subst(subst).freezeHoles(state);
+        var solved = preRhs.subst(subst, LevelSubst.EMPTY).freezeHoles(state);
         assert !state.metas().containsKey(meta);
         compareUntyped(solved.computeType(state), meta.result);
         var scopeCheck = solved.scopeCheck(meta.fullTelescope().map(Term.Param::ref).toImmutableSeq());

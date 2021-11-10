@@ -30,12 +30,12 @@ import org.jetbrains.annotations.Nullable;
  * @author ice1000
  */
 public interface Unfolder<P> extends TermFixpoint<P> {
-  @Nullable TyckState state();
   @Contract(pure = true) static @NotNull Substituter.TermSubst buildSubst(
+    @NotNull TyckState state,
     @NotNull SeqLike<Term.@NotNull Param> self,
     @NotNull SeqLike<@NotNull Arg<@NotNull Term>> args
   ) {
-    var subst = new Substituter.TermSubst(MutableMap.create());
+    var subst = new Substituter.TermSubst(MutableMap.create(), state);
     self.view().zip(args).forEach(t -> subst.add(t._1.ref(), t._2.term()));
     return subst;
   }
@@ -69,7 +69,7 @@ public interface Unfolder<P> extends TermFixpoint<P> {
     var body = def.body;
     if (body.isLeft()) {
       var termSubst = checkAndBuildSubst(def.telescope(), args);
-      return body.getLeftValue().subst(termSubst, levelSubst).accept(this, p).rename();
+      return body.getLeftValue().subst(termSubst, levelSubst).accept(this, p).rename(state());
     }
     var volynskaya = tryUnfoldClauses(p, args, levelSubst, body.getRightValue());
     return volynskaya != null ? volynskaya.data().accept(this, p) : new CallTerm.Fn(fnCall.ref(), fnCall.sortArgs(), args);
@@ -78,7 +78,7 @@ public interface Unfolder<P> extends TermFixpoint<P> {
   checkAndBuildSubst(SeqLike<Term.Param> telescope, SeqLike<Arg<Term>> args) {
     // assert args.sizeEquals(telescope);
     // assert Term.Param.checkSubst(telescope, args);
-    return buildSubst(telescope, args);
+    return buildSubst(state(), telescope, args);
   }
 
   @Override @NotNull default Term visitPrimCall(@NotNull CallTerm.Prim prim, P p) {
@@ -88,21 +88,19 @@ public interface Unfolder<P> extends TermFixpoint<P> {
   default @NotNull Term visitHole(@NotNull CallTerm.Hole hole, P p) {
     var def = hole.ref();
     // Not yet type checked
-    var state = state();
-    if (state == null) return hole;
-    var metas = state.metas();
+    var metas = state().metas();
     if (!metas.containsKey(def)) return hole;
     var body = metas.get(def);
     var args = hole.fullArgs().map(arg -> visitArg(arg, p)).toImmutableSeq();
     var subst = checkAndBuildSubst(def.fullTelescope(), args);
-    return body.subst(subst).accept(this, p);
+    return body.subst(subst, LevelSubst.EMPTY).accept(this, p);
   }
 
   default @Nullable WithPos<Term> tryUnfoldClauses(
     P p, SeqLike<Arg<Term>> args, LevelSubst levelSubst,
     @NotNull ImmutableSeq<Matching> clauses
   ) {
-    return tryUnfoldClauses(p, args, new Substituter.TermSubst(MutableMap.create()), levelSubst, clauses);
+    return tryUnfoldClauses(p, args, new Substituter.TermSubst(MutableMap.create(), state()), levelSubst, clauses);
   }
 
   default @Nullable WithPos<Term> tryUnfoldClauses(
@@ -111,10 +109,10 @@ public interface Unfolder<P> extends TermFixpoint<P> {
     @NotNull ImmutableSeq<Matching> clauses
   ) {
     for (var matchy : clauses) {
-      var termSubst = PatMatcher.tryBuildSubstArgs(matchy.patterns(), args);
+      var termSubst = PatMatcher.tryBuildSubstArgs(state(), matchy.patterns(), args);
       if (termSubst != null) {
         subst.add(termSubst);
-        var newBody = matchy.body().subst(subst, levelSubst).accept(this, p).rename();
+        var newBody = matchy.body().subst(subst, levelSubst).accept(this, p).rename(state());
         return new WithPos<>(matchy.sourcePos(), newBody);
       }
     }
@@ -135,9 +133,9 @@ public interface Unfolder<P> extends TermFixpoint<P> {
       return mischa != null ? mischa.data() : new CallTerm.Access(nevv, field,
         term.sortArgs(), term.structArgs(), dropped);
     }
-    var arguments = buildSubst(core.ownerTele, term.structArgs());
-    var fieldBody = term.fieldArgs().foldLeft(n.params().get(field), CallTerm::make);
-    return fieldBody.subst(arguments).accept(this, p);
+    var arguments = buildSubst(state(), core.ownerTele, term.structArgs());
+    var fieldBody = term.fieldArgs().foldLeft(n.params().get(field), (t, arg) -> CallTerm.make(state(), t, arg));
+    return fieldBody.subst(arguments, LevelSubst.EMPTY).accept(this, p);
   }
 
   /**
@@ -148,7 +146,7 @@ public interface Unfolder<P> extends TermFixpoint<P> {
   record Tracked(
     @NotNull Set<@NotNull Var> unfolding,
     @NotNull MutableSet<@NotNull Var> unfolded,
-    @Nullable TyckState state,
+    @Override @NotNull TyckState state,
     @NotNull PrimDef.Factory factory
   ) implements Unfolder<Unit> {
     @Override public @NotNull Term visitFnCall(CallTerm.@NotNull Fn fnCall, Unit unit) {

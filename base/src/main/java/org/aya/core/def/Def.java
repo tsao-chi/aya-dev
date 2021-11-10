@@ -10,6 +10,7 @@ import org.aya.api.distill.AyaDocile;
 import org.aya.api.distill.DistillerOptions;
 import org.aya.api.ref.DefVar;
 import org.aya.concrete.stmt.Signatured;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.FormTerm;
 import org.aya.core.term.Term;
@@ -53,8 +54,8 @@ public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
     else return Objects.requireNonNull(defVar.concrete.signature).result;
   }
   static @NotNull ImmutableSeq<Term.Param>
-  substParams(@NotNull SeqLike<Term.@NotNull Param> param, Substituter.@NotNull TermSubst subst) {
-    return param.view().drop(1).map(p -> p.subst(subst)).toImmutableSeq();
+  substParams(@NotNull SeqLike<Term.@NotNull Param> param, Substituter.TermSubst subst) {
+    return param.view().drop(1).map(p -> p.subst(subst, LevelSubst.EMPTY)).toImmutableSeq();
   }
 
   @Override @NotNull Term result();
@@ -89,7 +90,7 @@ public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
     @NotNull Term result
   ) implements AyaDocile {
     @Contract("_ -> new") public @NotNull Signature inst(@NotNull Substituter.TermSubst subst) {
-      return new Signature(sortParam, substParams(param, subst), result.subst(subst));
+      return new Signature(sortParam, substParams(param, subst), result.subst(subst, LevelSubst.EMPTY));
     }
 
     @Override public @NotNull Doc toDoc(@NotNull DistillerOptions options) {

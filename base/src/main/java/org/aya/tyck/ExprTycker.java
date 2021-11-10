@@ -83,7 +83,7 @@ public final class ExprTycker {
         var struct = synthesize(newExpr.struct()).wellTyped;
         while (struct.normalize(state, NormalizeMode.WHNF) instanceof IntroTerm.Lambda intro && !intro.param().explicit()) {
           var holeApp = mockTerm(intro.param(), newExpr.struct().sourcePos());
-          struct = CallTerm.make(intro, new Arg<>(holeApp, false));
+          struct = CallTerm.make(state, intro, new Arg<>(holeApp, false));
         }
         if (!(struct instanceof CallTerm.Struct structCall))
           yield fail(newExpr.struct(), struct, BadTypeError.structCon(newExpr, struct));
@@ -91,7 +91,7 @@ public final class ExprTycker {
 
         var subst = new Substituter.TermSubst(MutableMap.from(
           Def.defTele(structRef).view().zip(structCall.args())
-            .map(t -> Tuple.of(t._1.ref(), t._2.term()))));
+            .map(t -> Tuple.of(t._1.ref(), t._2.term()))), state);
         var levelSubst = new LevelSubst.Simple(MutableMap.from(
           Def.defLevels(structRef).view().zip(structCall.sortArgs())));
 
@@ -146,8 +146,8 @@ public final class ExprTycker {
             if (index < 0 || index >= telescope.size())
               return fail(proj, new ProjIxError(proj, ix, telescope.size()));
             var type = telescope.get(index).type();
-            var subst = ElimTerm.Proj.projSubst(projectee.wellTyped, index, telescope);
-            return new Result(new ElimTerm.Proj(projectee.wellTyped, ix), type.subst(subst));
+            var subst = ElimTerm.Proj.projSubst(projectee.wellTyped, index, telescope, state);
+            return new Result(new ElimTerm.Proj(projectee.wellTyped, ix), type.subst(subst, LevelSubst.EMPTY));
           }, sp -> {
             var fieldName = sp.data();
             if (!(whnf instanceof CallTerm.Struct structCall))
@@ -161,7 +161,7 @@ public final class ExprTycker {
             var fieldRef = field.ref();
             proj.resolvedIx().value = fieldRef;
 
-            var structSubst = Unfolder.buildSubst(structCore.telescope(), structCall.args());
+            var structSubst = Unfolder.buildSubst(state, structCore.telescope(), structCall.args());
             var levels = levelStuffs(struct.sourcePos(), fieldRef);
             var tele = Term.Param.subst(fieldRef.core.selfTele, structSubst, levels._1);
             var teleRenamed = tele.map(Term.Param::rename);
@@ -199,26 +199,26 @@ public final class ExprTycker {
         if (!(fTy instanceof FormTerm.Pi piTerm))
           yield fail(appE, f.type, BadTypeError.pi(appE, f.type));
         var pi = piTerm;
-        var subst = new Substituter.TermSubst(MutableMap.create());
+        var subst = new Substituter.TermSubst(MutableMap.create(), state);
         try {
           while (pi.param().explicit() != argLicit ||
             namedArg.name() != null && !Objects.equals(pi.param().ref().name(), namedArg.name())) {
             if (argLicit || namedArg.name() != null) {
               // that implies paramLicit == false
-              var holeApp = mockTerm(pi.param().subst(subst), namedArg.expr().sourcePos());
-              app = CallTerm.make(app, new Arg<>(holeApp, false));
+              var holeApp = mockTerm(pi.param().subst(subst, LevelSubst.EMPTY), namedArg.expr().sourcePos());
+              app = CallTerm.make(state, app, new Arg<>(holeApp, false));
               subst.addDirectly(pi.param().ref(), holeApp);
               pi = ensurePiOrThrow(pi.body());
             } else yield fail(appE, new ErrorTerm(pi.body()), new LicitProblem.UnexpectedImplicitArgError(argument));
           }
-          pi = ensurePiOrThrow(pi.subst(subst).normalize(state, NormalizeMode.WHNF));
+          pi = ensurePiOrThrow(pi.subst(subst, LevelSubst.EMPTY).normalize(state, NormalizeMode.WHNF));
         } catch (NotPi notPi) {
           yield fail(expr, ErrorTerm.unexpected(notPi.what), BadTypeError.pi(expr, notPi.what));
         }
         var elabArg = inherit(namedArg.expr(), pi.param().type()).wellTyped;
-        app = CallTerm.make(app, new Arg<>(elabArg, argLicit));
+        app = CallTerm.make(state, app, new Arg<>(elabArg, argLicit));
         subst.addDirectly(pi.param().ref(), elabArg);
-        yield new Result(app, pi.body().subst(subst));
+        yield new Result(app, pi.body().subst(subst, LevelSubst.EMPTY));
       }
       case Expr.HoleExpr hole -> inherit(hole, localCtx.freshHole(
         FormTerm.freshUniv(hole.sourcePos()), Constants.randomName(hole), hole.sourcePos())._2);
@@ -268,9 +268,9 @@ public final class ExprTycker {
           resultTele.append(new Term.Param(ref, result.type, againstTele.first().explicit()));
           againstTele = againstTele.drop(1);
           if (againstTele.isNotEmpty()) {
-            var subst = new Substituter.TermSubst(ref, result.wellTyped);
-            againstTele = againstTele.map(param -> param.subst(subst)).toSeq().view();
-            last = last.subst(subst);
+            var subst = new Substituter.TermSubst(ref, result.wellTyped, state);
+            againstTele = againstTele.map(param -> param.subst(subst, LevelSubst.EMPTY)).toSeq().view();
+            last = last.subst(subst, LevelSubst.EMPTY);
           } else {
             if (iter.hasNext()) {
               // TODO[ice]: too few tuple elements
@@ -320,7 +320,7 @@ public final class ExprTycker {
           } else type = result.wellTyped;
         }
         var resultParam = new Term.Param(var, type, param.explicit());
-        var body = dt.substBody(resultParam.toTerm());
+        var body = dt.substBody(resultParam.toTerm(), state);
         yield localCtx.with(resultParam, () -> {
           var rec = inherit(lam.body(), body);
           return new Result(new IntroTerm.Lambda(resultParam, rec.wellTyped), dt);
@@ -410,7 +410,7 @@ public final class ExprTycker {
     if (type instanceof FormTerm.Pi pi && !pi.param().explicit() && needImplicitParamIns(expr)) {
       var implicitParam = new Term.Param(new LocalVar(Constants.ANONYMOUS_PREFIX), pi.param().type(), false);
       var body = localCtx.with(implicitParam, () ->
-        inherit(expr, pi.substBody(implicitParam.toTerm()))).wellTyped;
+        inherit(expr, pi.substBody(implicitParam.toTerm(), state))).wellTyped;
       result = new Result(new IntroTerm.Lambda(implicitParam, body), pi);
     } else result = doInherit(expr, type);
     traceExit(result, expr);
@@ -485,7 +485,7 @@ public final class ExprTycker {
     } else if (var.core instanceof CtorDef || var.concrete instanceof Decl.DataDecl.DataCtor) {
       var conVar = (DefVar<CtorDef, Decl.DataDecl.DataCtor>) var;
       var level = levelStuffs(pos, conVar);
-      var tele = Term.Param.subst(Def.defTele(conVar), level._1);
+      var tele = Term.Param.subst(Def.defTele(conVar), Substituter.TermSubst.EMPTY, level._1);
       var type = FormTerm.Pi.make(tele, Def.defResult(conVar).subst(Substituter.TermSubst.EMPTY, level._1));
       var telescopes = CtorDef.telescopes(conVar, level._2).rename();
       var body = telescopes.toConCall(conVar).subst(Substituter.TermSubst.EMPTY, level._1);
@@ -506,7 +506,7 @@ public final class ExprTycker {
   private @NotNull <D extends Def, S extends Signatured> ExprTycker.Result
   defCall(@NotNull SourcePos pos, DefVar<D, S> defVar, CallTerm.Factory<D, S> function) {
     var level = levelStuffs(pos, defVar);
-    var tele = Term.Param.subst(Def.defTele(defVar), level._1);
+    var tele = Term.Param.subst(Def.defTele(defVar), Substituter.TermSubst.EMPTY, level._1);
     var teleRenamed = tele.map(Term.Param::rename);
     // unbound these abstracted variables
     var body = function.make(defVar, level._2, teleRenamed.map(Term.Param::toArg));
@@ -561,8 +561,8 @@ public final class ExprTycker {
     var term = result.wellTyped;
     while (lower.normalize(state, NormalizeMode.WHNF) instanceof FormTerm.Pi pi && !pi.param().explicit()) {
       var mock = mockTerm(pi.param(), loc.sourcePos());
-      term = CallTerm.make(term, new Arg<>(mock, false));
-      lower = pi.substBody(mock);
+      term = CallTerm.make(state, term, new Arg<>(mock, false));
+      lower = pi.substBody(mock, state);
     }
     if (unifyTy(upper, lower, loc.sourcePos())) return new Result(term, lower);
     return fail(term.freezeHoles(state), upper, new UnifyError(loc, upper, lower));

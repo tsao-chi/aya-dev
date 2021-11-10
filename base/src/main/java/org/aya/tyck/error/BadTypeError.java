@@ -9,6 +9,7 @@ import org.aya.concrete.Expr;
 import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Style;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 public record BadTypeError(
@@ -26,7 +27,7 @@ public record BadTypeError(
       Doc.par(1, expr.toDoc(options)),
       Doc.sep(Doc.english("because the type"), thing, Doc.english("is not a"), Doc.cat(desired, Doc.plain(",")), Doc.english("but instead:")),
       Doc.par(1, actualType.toDoc(options)),
-      Doc.par(1, Doc.parened(Doc.sep(Doc.plain("Normalized:"), actualType.normalize(null, NormalizeMode.NF).toDoc(options))))
+      Doc.par(1, Doc.parened(Doc.sep(Doc.plain("Normalized:"), actualType.normalize(TyckState.EMPTY, NormalizeMode.NF).toDoc(options))))
     );
   }
 

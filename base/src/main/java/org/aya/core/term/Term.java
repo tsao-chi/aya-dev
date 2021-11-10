@@ -2,10 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.term;
 
-import kala.collection.Map;
 import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.DynamicSeq;
+import kala.collection.mutable.MutableMap;
 import kala.tuple.Tuple3;
 import kala.tuple.Unit;
 import org.aya.api.core.CoreTerm;
@@ -52,15 +52,7 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
     return TermToPat.toPat(this, explicit);
   }
 
-  default @NotNull Term subst(@NotNull Substituter.TermSubst subst) {
-    return subst(subst.map());
-  }
-
-  default @NotNull Term subst(@NotNull Map<Var, Term> subst) {
-    return subst(subst, LevelSubst.EMPTY);
-  }
-
-  default @NotNull Term subst(@NotNull Map<Var, Term> subst, @NotNull LevelSubst levelSubst) {
+  default @NotNull Term subst(@NotNull Substituter.TermSubst subst, @NotNull LevelSubst levelSubst) {
     return accept(new Substituter(subst, levelSubst), Unit.unit());
   }
 
@@ -68,8 +60,8 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
     return new Zonker(tycker.state, tycker.reporter).zonk(this, pos);
   }
 
-  @Override default @NotNull Term rename() {
-    return accept(new Renamer(), Unit.unit());
+  default @NotNull Term rename(@NotNull TyckState state) {
+    return accept(new Renamer(state), Unit.unit());
   }
 
   @Override default int findUsages(@NotNull Var var) {
@@ -85,15 +77,18 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
     return checker.invalidVars;
   }
 
-  default @NotNull Term normalize(@Nullable TyckState state, @NotNull NormalizeMode mode) {
+  default @NotNull Term normalize(@NotNull TyckState state, @NotNull NormalizeMode mode) {
     if (mode == NormalizeMode.NULL) return this;
     return accept(new Normalizer(state), mode);
   }
 
-  default @NotNull Term freezeHoles(@Nullable TyckState state) {
+  default @NotNull Term freezeHoles(@NotNull TyckState state) {
     return accept(new TermFixpoint<>() {
+      @Override public @NotNull TyckState state() {
+        return state;
+      }
+
       @Override public @NotNull Term visitHole(CallTerm.@NotNull Hole term, Unit unit) {
-        if (state == null) return TermFixpoint.super.visitHole(term, unit);
         var sol = term.ref();
         var metas = state.metas();
         if (!metas.containsKey(sol)) return TermFixpoint.super.visitHole(term, unit);
@@ -101,7 +96,7 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
       }
 
       @Override public @NotNull Sort visitSort(@NotNull Sort sort, Unit unit) {
-        return state != null ? state.levelEqns().applyTo(sort) : sort;
+        return state.levelEqns().applyTo(sort);
       }
     }, Unit.unit());
   }
@@ -109,7 +104,7 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
   @Override default @NotNull Doc toDoc(@NotNull DistillerOptions options) {
     return accept(new CoreDistiller(options), BaseDistiller.Outer.Free);
   }
-  default @NotNull Term computeType(@Nullable TyckState state) {
+  default @NotNull Term computeType(@NotNull TyckState state) {
     return accept(new LittleTyper(state), Unit.unit());
   }
 
@@ -170,12 +165,8 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
       return new RefTerm(ref, type);
     }
 
-    public @NotNull Param subst(@NotNull Var var, @NotNull Term term) {
-      return subst(new Substituter.TermSubst(var, term));
-    }
-
-    public @NotNull Param subst(@NotNull Substituter.TermSubst subst) {
-      return subst(subst.map(), LevelSubst.EMPTY);
+    public @NotNull Param subst(@NotNull TyckState state, @NotNull Var var, @NotNull Term term) {
+      return subst(new Substituter.TermSubst(MutableMap.of(var, term), state), LevelSubst.EMPTY);
     }
 
     public static @NotNull ImmutableSeq<Param> subst(
@@ -183,15 +174,10 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, ErrorT
       @NotNull Substituter.TermSubst subst,
       @NotNull LevelSubst levelSubst
     ) {
-      return params.map(param -> param.subst(subst.map(), levelSubst));
+      return params.map(param -> param.subst(subst, levelSubst));
     }
 
-    public static @NotNull ImmutableSeq<Param>
-    subst(@NotNull ImmutableSeq<@NotNull Param> params, @NotNull LevelSubst levelSubst) {
-      return params.map(param -> param.subst(Map.empty(), levelSubst));
-    }
-
-    public @NotNull Param subst(@NotNull Map<Var, Term> subst, @NotNull LevelSubst levelSubst) {
+    public @NotNull Param subst(@NotNull Substituter.TermSubst subst, @NotNull LevelSubst levelSubst) {
       return new Param(ref, type.subst(subst, levelSubst), explicit);
     }
 

@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
  */
 @ApiStatus.NonExtendable
 public interface CoreTerm extends AyaDocile {
-  @NotNull CoreTerm rename();
   /** @return Number of usages of the given var. */
   int findUsages(@NotNull Var var);
   /**

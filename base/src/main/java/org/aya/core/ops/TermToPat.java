@@ -8,6 +8,7 @@ import org.aya.core.term.CallTerm;
 import org.aya.core.term.IntroTerm;
 import org.aya.core.term.RefTerm;
 import org.aya.core.term.Term;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ public interface TermToPat {
         conCall.args().map(TermToPat::toPat), null,
         conCall.head().underlyingDataCall());
       case CallTerm.Prim prim -> switch (prim.ref().core.id) {
-        case LEFT, RIGHT -> new Pat.Prim(explicit, prim.ref(), prim.computeType(null));
+        case LEFT, RIGHT -> new Pat.Prim(explicit, prim.ref(), prim.computeType(TyckState.EMPTY));
         default -> null;
       };
       case IntroTerm.Tuple tuple -> new Pat.Tuple(explicit,

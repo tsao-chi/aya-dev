@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.term;
 
-import kala.collection.Map;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.api.ref.DefVar;
@@ -12,13 +11,16 @@ import org.aya.concrete.stmt.Decl;
 import org.aya.concrete.stmt.Signatured;
 import org.aya.core.Meta;
 import org.aya.core.def.*;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.sort.Sort;
+import org.aya.core.visitor.Substituter;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
- * @see CallTerm#make(Term, Arg)
+ * @see CallTerm#make(TyckState, Term, Arg)
  */
 public sealed interface CallTerm extends Term {
   @NotNull Var ref();
@@ -35,19 +37,19 @@ public sealed interface CallTerm extends Term {
   }
 
   @Contract(pure = true) static @NotNull Term
-  make(@NotNull Term f, @NotNull Arg<Term> arg) {
+  make(@NotNull TyckState state, @NotNull Term f, @NotNull Arg<Term> arg) {
     if (f instanceof Hole hole) {
       if (hole.args.sizeLessThan(hole.ref.telescope))
         return new Hole(hole.ref, hole.contextArgs, hole.args.appended(arg));
     }
     if (!(f instanceof IntroTerm.Lambda lam)) return new ElimTerm.App(f, arg);
-    return make(lam, arg);
+    return make(state, lam, arg);
   }
 
-  static @NotNull Term make(IntroTerm.Lambda lam, @NotNull Arg<Term> arg) {
+  static @NotNull Term make(@NotNull TyckState state, @NotNull IntroTerm.Lambda lam, @NotNull Arg<Term> arg) {
     var param = lam.param();
     assert arg.explicit() == param.explicit();
-    return lam.body().subst(Map.of(param.ref(), arg.term()));
+    return lam.body().subst(new Substituter.TermSubst(param.ref(), arg.term(), state), LevelSubst.EMPTY);
   }
 
   record Fn(

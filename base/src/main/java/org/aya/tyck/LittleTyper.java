@@ -8,20 +8,20 @@ import org.aya.api.ref.DefVar;
 import org.aya.api.util.NormalizeMode;
 import org.aya.concrete.stmt.Decl;
 import org.aya.core.def.Def;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
 import org.aya.core.visitor.Substituter;
 import org.aya.core.visitor.Unfolder;
 import org.aya.generic.Constants;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Similar to <code>GetTypeVisitor</code> in Arend.
  *
  * @author ice1000
  */
-public record LittleTyper(@Nullable TyckState state) implements Term.Visitor<Unit, Term> {
+public record LittleTyper(@NotNull TyckState state) implements Term.Visitor<Unit, Term> {
   @Override public Term visitRef(@NotNull RefTerm term, Unit unit) {
     return term.type();
   }
@@ -59,7 +59,7 @@ public record LittleTyper(@Nullable TyckState state) implements Term.Visitor<Uni
 
   @Override public Term visitApp(ElimTerm.@NotNull App term, Unit unit) {
     var piRaw = term.of().accept(this, unit).normalize(state, NormalizeMode.WHNF);
-    return piRaw instanceof FormTerm.Pi pi ? pi.substBody(term.arg().term()) : ErrorTerm.typeOf(term);
+    return piRaw instanceof FormTerm.Pi pi ? pi.substBody(term.arg().term(), state) : ErrorTerm.typeOf(term);
   }
 
   @Override public Term visitFnCall(@NotNull CallTerm.Fn fnCall, Unit unit) {
@@ -103,16 +103,16 @@ public record LittleTyper(@Nullable TyckState state) implements Term.Visitor<Uni
     var index = term.ix() - 1;
     var telescope = sigma.params();
     return telescope.get(index).type()
-      .subst(ElimTerm.Proj.projSubst(term.of(), index, telescope));
+      .subst(ElimTerm.Proj.projSubst(term.of(), index, telescope, state), LevelSubst.EMPTY);
   }
 
   @Override public Term visitAccess(CallTerm.@NotNull Access term, Unit unit) {
     var callRaw = term.of().accept(this, unit).normalize(state, NormalizeMode.WHNF);
     if (!(callRaw instanceof CallTerm.Struct call)) return ErrorTerm.typeOf(term);
     var core = term.ref().core;
-    var subst = Unfolder.buildSubst(core.telescope(), term.fieldArgs())
-      .add(Unfolder.buildSubst(call.ref().core.telescope(), term.structArgs()));
-    return core.result().subst(subst);
+    var subst = Unfolder.buildSubst(state, core.telescope(), term.fieldArgs())
+      .add(Unfolder.buildSubst(state, call.ref().core.telescope(), term.structArgs()));
+    return core.result().subst(subst, LevelSubst.EMPTY);
   }
 
   @Override public Term visitHole(CallTerm.@NotNull Hole term, Unit unit) {

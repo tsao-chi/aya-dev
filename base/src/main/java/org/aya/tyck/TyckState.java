@@ -38,6 +38,9 @@ public record TyckState(
   @NotNull LevelEqnSet levelEqns,
   @NotNull MutableMap<@NotNull Meta, @NotNull Term> metas
 ) {
+  // Use carefully!!
+  public static final @NotNull TyckState EMPTY = new TyckState();
+
   public TyckState() {
     this(DynamicSeq.create(), DynamicSeq.create(), new LevelEqnSet(), MutableMap.create());
   }

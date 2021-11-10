@@ -17,6 +17,7 @@ import org.aya.core.term.RefTerm;
 import org.aya.core.term.Term;
 import org.aya.distill.BaseDistiller;
 import org.aya.pretty.doc.Doc;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +28,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public record Substituter(
   @NotNull Map<Var, Term> termSubst,
+  @NotNull TyckState state,
   @NotNull LevelSubst levelSubst
 ) implements TermFixpoint<Unit> {
   public Substituter(@NotNull TermSubst termSubst, @NotNull LevelSubst levelSubst) {
-    this(termSubst.map, levelSubst);
+    this(termSubst.map, termSubst.state, levelSubst);
   }
 
   @Override public @NotNull Sort visitSort(@NotNull Sort sort, Unit unit) {
@@ -38,11 +40,11 @@ public record Substituter(
   }
 
   @Override public @NotNull Term visitFieldRef(@NotNull RefTerm.Field term, Unit unit) {
-    return termSubst.getOption(term.ref()).map(Term::rename).getOrDefault(term);
+    return termSubst.getOption(term.ref()).map(t -> t.rename(state)).getOrDefault(term);
   }
 
   @Override public @NotNull Term visitRef(@NotNull RefTerm term, Unit unused) {
-    return termSubst.getOption(term.var()).map(Term::rename).getOrElse(() ->
+    return termSubst.getOption(term.var()).map(t -> t.rename(state)).getOrElse(() ->
       TermFixpoint.super.visitRef(term, Unit.unit()));
   }
 
@@ -52,18 +54,21 @@ public record Substituter(
   @Debug.Renderer(text = "map.toString()",
     childrenArray = "map.asJava().entrySet().toArray()",
     hasChildren = "map.isNotEmpty()")
-  public record TermSubst(@NotNull MutableMap<@NotNull Var, @NotNull Term> map) implements AyaDocile {
+  public record TermSubst(
+    @NotNull MutableMap<@NotNull Var, @NotNull Term> map,
+    @NotNull TyckState state
+  ) implements AyaDocile {
     public static final @NotNull TermSubst EMPTY = new TermSubst(MutableTreeMap.of((o1, o2) -> {
       throw new UnsupportedOperationException("Shall not modify LevelSubst.EMPTY");
-    }));
+    }), new TyckState());
 
-    public TermSubst(@NotNull Var var, @NotNull Term term) {
-      this(MutableHashMap.of(var, term));
+    public TermSubst(@NotNull Var var, @NotNull Term term, @NotNull TyckState state) {
+      this(MutableHashMap.of(var, term), state);
     }
 
     public void subst(@NotNull TermSubst subst) {
       if (map.isEmpty()) return;
-      map.replaceAll((var, term) -> term.subst(subst));
+      map.replaceAll((var, term) -> term.subst(subst, LevelSubst.EMPTY));
     }
 
     public ImmutableSeq<Var> overlap(@NotNull TermSubst subst) {
@@ -77,7 +82,7 @@ public record Substituter(
     }
 
     public @NotNull TermSubst add(@NotNull Var var, @NotNull Term term) {
-      subst(new TermSubst(var, term));
+      subst(new TermSubst(var, term, state));
       return addDirectly(var, term);
     }
 

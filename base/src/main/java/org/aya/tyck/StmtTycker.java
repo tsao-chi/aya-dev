@@ -186,10 +186,11 @@ public record StmtTycker(
     var patSubst = patTycker.refSubst.clone();
     var dataParamView = dataSig.param().view();
     if (pat.isNotEmpty()) {
-      var subst = dataParamView.map(Term.Param::ref)
-        .zip(pat.view().map(Pat::toTerm))
-        .<Var, Term>toImmutableMap();
-      dataCall = (CallTerm.Data) dataCall.subst(subst);
+      var substMap = MutableMap.<Var, Term>from(
+          dataParamView.map(Term.Param::ref)
+            .zip(pat.view().map(Pat::toTerm)));
+      var subst = new Substituter.TermSubst(substMap, tycker.state);
+      dataCall = (CallTerm.Data) dataCall.subst(subst, LevelSubst.EMPTY);
     }
     var elabClauses = patTycker.elabClauses(patSubst, signature, ctor.clauses);
     var matchings = elabClauses.flatMap(Pat.PrototypeClause::deprototypify);

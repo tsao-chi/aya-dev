@@ -3,8 +3,8 @@
 package org.aya.core.visitor;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.DynamicSeq;
 import kala.collection.mutable.DynamicLinkedSeq;
+import kala.collection.mutable.DynamicSeq;
 import kala.tuple.Unit;
 import org.aya.api.distill.DistillerOptions;
 import org.aya.api.error.Problem;
@@ -57,6 +57,10 @@ public final class Zonker implements TermFixpoint<Unit> {
 
   @Override public void traceExit(@NotNull Term term) {
     stack.pop();
+  }
+
+  @Override public @NotNull TyckState state() {
+    return state;
   }
 
   @Contract(pure = true) @Override public @NotNull Term visitHole(@NotNull CallTerm.Hole term, Unit unit) {

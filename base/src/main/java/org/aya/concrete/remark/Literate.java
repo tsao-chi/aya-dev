@@ -22,6 +22,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Docile;
 import org.aya.pretty.doc.Style;
 import org.aya.tyck.ExprTycker;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +118,7 @@ public sealed interface Literate extends Docile {
 
     private @NotNull Doc normalize(@NotNull Term term) {
       var mode = options.mode();
-      return (mode == null ? term : term.normalize(null, mode)).toDoc(options.options());
+      return (mode == null ? term : term.normalize(TyckState.EMPTY, mode)).toDoc(options.options());
     }
 
     @Override public @NotNull Doc toDoc() {

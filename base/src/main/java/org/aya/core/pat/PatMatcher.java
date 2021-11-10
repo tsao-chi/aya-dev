@@ -12,6 +12,7 @@ import org.aya.core.term.CallTerm;
 import org.aya.core.term.IntroTerm;
 import org.aya.core.term.Term;
 import org.aya.core.visitor.Substituter;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,22 +20,25 @@ import org.jetbrains.annotations.Nullable;
  * Matches a term with a pattern.
  *
  * @author ice1000
- * @apiNote Use {@link PatMatcher#tryBuildSubstArgs(ImmutableSeq, SeqLike)} instead of instantiating the class directly.
+ * @apiNote Use {@link PatMatcher#tryBuildSubstArgs(TyckState, ImmutableSeq, SeqLike)}
+ * instead of instantiating the class directly.
  * @implNote The substitution built is made from parallel substitutions.
  */
 public record PatMatcher(@NotNull Substituter.TermSubst subst) {
   public static @Nullable Substituter.TermSubst tryBuildSubstArgs(
+    @NotNull TyckState state,
     @NotNull ImmutableSeq<@NotNull Pat> pats,
     @NotNull SeqLike<@NotNull Arg<@NotNull Term>> terms
   ) {
-    return tryBuildSubstTerms(pats, terms.view().map(Arg::term));
+    return tryBuildSubstTerms(state, pats, terms.view().map(Arg::term));
   }
 
   public static @Nullable Substituter.TermSubst tryBuildSubstTerms(
+    @NotNull TyckState state,
     @NotNull ImmutableSeq<@NotNull Pat> pats,
     @NotNull SeqLike<@NotNull Term> terms
   ) {
-    var matchy = new PatMatcher(new Substituter.TermSubst(new MutableHashMap<>()));
+    var matchy = new PatMatcher(new Substituter.TermSubst(new MutableHashMap<>(), state));
     try {
       for (var pat : pats.zip(terms)) matchy.match(pat);
       return matchy.subst();

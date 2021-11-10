@@ -8,6 +8,7 @@ import org.aya.core.term.FormTerm;
 import org.aya.core.term.IntroTerm;
 import org.aya.core.term.RefTerm;
 import org.aya.core.term.Term;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,7 +17,13 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public final class Renamer implements TermFixpoint<Unit> {
-  private final Substituter.TermSubst subst = new Substituter.TermSubst(MutableMap.create());
+  public Renamer(@NotNull TyckState state) {
+    this.state = state;
+    subst = new Substituter.TermSubst(MutableMap.create(), this.state);
+  }
+
+  private final @NotNull TyckState state;
+  private final Substituter.TermSubst subst;
 
   @Override public @NotNull Term visitFieldRef(@NotNull RefTerm.Field field, Unit unit) {
     return subst.map().getOrDefault(field.ref(), field);
@@ -46,5 +53,9 @@ public final class Renamer implements TermFixpoint<Unit> {
 
   @Override public @NotNull Term visitSigma(FormTerm.@NotNull Sigma term, Unit unit) {
     return new FormTerm.Sigma(term.params().map(this::handleBinder));
+  }
+
+  public @NotNull TyckState state() {
+    return state;
   }
 }

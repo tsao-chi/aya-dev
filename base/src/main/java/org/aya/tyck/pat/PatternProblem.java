@@ -11,6 +11,7 @@ import org.aya.core.term.Term;
 import org.aya.distill.BaseDistiller;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Style;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface PatternProblem extends Problem {
@@ -81,7 +82,7 @@ public sealed interface PatternProblem extends Problem {
         Doc.english("The tuple pattern"),
         Doc.par(1, pattern.toDoc(options)),
         Doc.english("splits only on sigma types, while the actual type"),
-        Doc.par(1, type.freezeHoles(null).toDoc(options)),
+        Doc.par(1, type.freezeHoles(TyckState.EMPTY).toDoc(options)),
         Doc.english("does not look like one"));
     }
 

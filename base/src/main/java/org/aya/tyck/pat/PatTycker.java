@@ -23,6 +23,7 @@ import org.aya.core.def.Def;
 import org.aya.core.def.PrimDef;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatMatcher;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.term.CallTerm;
 import org.aya.core.term.ErrorTerm;
 import org.aya.core.term.FormTerm;
@@ -73,7 +74,7 @@ public final class PatTycker {
 
   public PatTycker(@NotNull ExprTycker exprTycker) {
     this(exprTycker, new ExprRefSubst(exprTycker.reporter),
-      new Substituter.TermSubst(MutableMap.create()), exprTycker.traceBuilder);
+      new Substituter.TermSubst(MutableMap.create(), exprTycker.state), exprTycker.traceBuilder);
   }
 
   public @NotNull Tuple2<@NotNull Term, @NotNull ImmutableSeq<Pat.PrototypeClause>>
@@ -180,7 +181,7 @@ public final class PatTycker {
       // and in case the patterns are malformed, some bindings may
       // not be added to the localCtx of tycker, causing assertion errors
       ? match.expr.<Term>map(e -> new ErrorTerm(e, false))
-      : match.expr.map(e -> exprTycker.inherit(e, type).wellTyped().subst(termSubst));
+      : match.expr.map(e -> exprTycker.inherit(e, type).wellTyped().subst(termSubst, LevelSubst.EMPTY));
     termSubst.clear();
     var parent = exprTycker.localCtx.parent();
     assert parent != null;
@@ -299,7 +300,7 @@ public final class PatTycker {
   }
 
   private @Nullable Substituter.TermSubst mischa(CallTerm.Data dataCall, DataDef core, CtorDef ctor) {
-    if (ctor.pats.isNotEmpty()) return PatMatcher.tryBuildSubstArgs(ctor.pats, dataCall.args());
-    else return Unfolder.buildSubst(core.telescope(), dataCall.args());
+    if (ctor.pats.isNotEmpty()) return PatMatcher.tryBuildSubstArgs(exprTycker.state, ctor.pats, dataCall.args());
+    else return Unfolder.buildSubst(exprTycker.state, core.telescope(), dataCall.args());
   }
 }

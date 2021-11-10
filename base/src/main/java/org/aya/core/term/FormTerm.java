@@ -2,14 +2,16 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.term;
 
-import kala.collection.Map;
 import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.DynamicSeq;
 import org.aya.api.error.SourcePos;
+import org.aya.core.sort.LevelSubst;
 import org.aya.core.sort.Sort;
+import org.aya.core.visitor.Substituter;
 import org.aya.generic.Constants;
 import org.aya.generic.Level;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,8 +28,8 @@ public sealed interface FormTerm extends Term {
       return visitor.visitPi(this, p);
     }
 
-    public @NotNull Term substBody(@NotNull Term term) {
-      return body.subst(Map.of(param.ref(), term));
+    public @NotNull Term substBody(@NotNull Term term, @NotNull TyckState state) {
+      return body.subst(new Substituter.TermSubst(param.ref(), term, state), LevelSubst.EMPTY);
     }
 
     public @NotNull Term parameters(@NotNull DynamicSeq<Term.@NotNull Param> params) {

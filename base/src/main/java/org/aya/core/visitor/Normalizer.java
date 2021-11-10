@@ -7,15 +7,14 @@ import org.aya.api.util.NormalizeMode;
 import org.aya.core.term.*;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public record Normalizer(@Nullable TyckState state) implements Unfolder<NormalizeMode> {
+public record Normalizer(@NotNull TyckState state) implements Unfolder<NormalizeMode> {
   @Override public @NotNull Term visitApp(@NotNull ElimTerm.App term, NormalizeMode mode) {
     var fn = term.of().accept(this, mode);
     if (fn instanceof IntroTerm.Lambda lambda)
-      return CallTerm.make(lambda, visitArg(term.arg(), mode)).accept(this, mode);
+      return CallTerm.make(state, lambda, visitArg(term.arg(), mode)).accept(this, mode);
     if (mode == NormalizeMode.NF) // FIXME: in case it's not NF, reduce again
-      return CallTerm.make(fn, visitArg(term.arg(), mode));
+      return CallTerm.make(state, fn, visitArg(term.arg(), mode));
     else return term;
   }
 

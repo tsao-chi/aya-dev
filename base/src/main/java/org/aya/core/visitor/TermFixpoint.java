@@ -7,6 +7,7 @@ import kala.tuple.Tuple;
 import org.aya.api.util.Arg;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
+import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +17,7 @@ import java.util.function.BiFunction;
  * @author ice1000
  */
 public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
+  @NotNull TyckState state();
   @Override default @NotNull Term visitHole(@NotNull CallTerm.Hole term, P p) {
     var contextArgs = term.contextArgs().map(arg -> visitArg(arg, p));
     var args = term.args().map(arg -> visitArg(arg, p));
@@ -116,7 +118,7 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
     var function = term.of().accept(this, p);
     var arg = visitArg(term.arg(), p);
     if (function == term.of() && arg == term.arg()) return term;
-    return CallTerm.make(function, arg);
+    return CallTerm.make(state(), function, arg);
   }
 
   @Override default @NotNull Term visitFnCall(CallTerm.@NotNull Fn fnCall, P p) {

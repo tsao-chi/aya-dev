@@ -17,7 +17,7 @@ public final class FieldDef extends SubLevelDef {
 
   public FieldDef(
     @NotNull DefVar<StructDef, Decl.StructDecl> structRef, @NotNull DefVar<FieldDef, Decl.StructField> ref,
-    @NotNull ImmutableSeq<Term.Param> ownerTele, @NotNull ImmutableSeq<Term.Param> selfTele,
+    Term.Param @NotNull [] ownerTele, Term.Param @NotNull [] selfTele,
     @NotNull Term result, @NotNull ImmutableSeq<Matching> clauses, @NotNull Option<Term> body, boolean coerce
   ) {
     super(ownerTele, selfTele, result, clauses, coerce);
@@ -31,7 +31,7 @@ public final class FieldDef extends SubLevelDef {
     return visitor.visitField(this, p);
   }
 
-  @Override public @NotNull ImmutableSeq<Term.Param> telescope() {
+  @Override public Term.Param @NotNull [] telescope() {
     return selfTele;
   }
 

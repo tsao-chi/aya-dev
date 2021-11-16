@@ -14,14 +14,14 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public sealed abstract class SubLevelDef implements Def permits CtorDef, FieldDef {
-  public final @NotNull ImmutableSeq<Term.Param> ownerTele;
-  public final @NotNull ImmutableSeq<Term.Param> selfTele;
+  public final Term.Param @NotNull [] ownerTele;
+  public final Term.Param @NotNull [] selfTele;
   public final @NotNull Term result;
   public final @NotNull ImmutableSeq<Matching> clauses;
   public final boolean coerce;
 
   protected SubLevelDef(
-    @NotNull ImmutableSeq<Term.Param> ownerTele, @NotNull ImmutableSeq<Term.Param> selfTele,
+    Term.Param @NotNull [] ownerTele, Term.Param @NotNull [] selfTele,
     @NotNull Term result, @NotNull ImmutableSeq<Matching> clauses, boolean coerce
   ) {
     this.ownerTele = ownerTele;

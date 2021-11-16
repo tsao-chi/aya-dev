@@ -40,7 +40,7 @@ public record PatClassifier(
 ) {
   public static @NotNull ImmutableSeq<PatClass> classify(
     @NotNull ImmutableSeq<Pat.@NotNull PrototypeClause> clauses,
-    @NotNull ImmutableSeq<Term.Param> telescope, @NotNull TyckState state,
+    Term.Param @NotNull [] telescope, @NotNull TyckState state,
     @NotNull Reporter reporter, @NotNull SourcePos pos,
     boolean coverage
   ) {
@@ -117,7 +117,7 @@ public record PatClassifier(
    * @return pattern classes
    */
   private @NotNull ImmutableSeq<PatClass> classifySub(
-    @NotNull ImmutableSeq<Term.Param> telescope,
+    Term.Param @NotNull [] telescope,
     @NotNull ImmutableSeq<SubPats> subPatsSeq,
     boolean coverage, int fuel
   ) {
@@ -138,7 +138,7 @@ public record PatClassifier(
    * @see #classifySub(ImmutableSeq, ImmutableSeq, boolean, int)
    */
   private @Nullable ImmutableSeq<PatClass> classifySubImpl(
-    @NotNull ImmutableSeq<Term.Param> telescope,
+    Term.Param @NotNull [] telescope,
     @NotNull ImmutableSeq<SubPats> subPatsSeq,
     boolean coverage, int fuel
   ) {
@@ -304,7 +304,7 @@ public record PatClassifier(
       || head instanceof Pat.Bind ? new SubPats(subPats.pats, ix) : null;
   }
 
-  private static @Nullable SubPats matches(SubPats subPats, int ix, ImmutableSeq<Term.Param> conTele, Var ctorRef) {
+  private static @Nullable SubPats matches(SubPats subPats, int ix, Term.Param[] conTele, Var ctorRef) {
     var head = subPats.head();
     if (head instanceof Pat.Ctor ctorPat && ctorPat.ref() == ctorRef)
       return new SubPats(ctorPat.params().view(), ix);

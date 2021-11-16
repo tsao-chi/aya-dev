@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
  * @implNote Do not override equals or hashCode
  */
 public final class Meta implements Var {
-  public final @NotNull ImmutableSeq<Term.Param> contextTele;
-  public final @NotNull ImmutableSeq<Term.Param> telescope;
+  public final Term.Param @NotNull [] contextTele;
+  public final Term.Param @NotNull [] telescope;
   public final @NotNull String name;
   public final @NotNull Term result;
   public final @NotNull SourcePos sourcePos;
@@ -41,8 +41,8 @@ public final class Meta implements Var {
   }
 
   private Meta(
-    @NotNull ImmutableSeq<Term.Param> contextTele,
-    @NotNull ImmutableSeq<Term.Param> telescope,
+    Term.Param @NotNull [] contextTele,
+    Term.Param @NotNull [] telescope,
     @NotNull String name, @NotNull Term result,
     @NotNull SourcePos sourcePos
   ) {
@@ -54,7 +54,7 @@ public final class Meta implements Var {
   }
 
   public static @NotNull Meta from(
-    @NotNull ImmutableSeq<Term.Param> contextTele, @NotNull String name,
+    Term.Param @NotNull [] contextTele, @NotNull String name,
     @NotNull Term result, @NotNull SourcePos sourcePos
   ) {
     if (result instanceof FormTerm.Pi pi) {

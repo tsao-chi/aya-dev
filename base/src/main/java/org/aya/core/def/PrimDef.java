@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  */
 public final class PrimDef extends TopLevelDef {
   public PrimDef(
-    @NotNull ImmutableSeq<Term.Param> telescope,
+    Term.Param @NotNull [] telescope,
     @NotNull Sort.LvlVar @NotNull [] levels,
     @NotNull Term result, @NotNull ID name
   ) {
@@ -53,7 +53,7 @@ public final class PrimDef extends TopLevelDef {
     return Factory.INSTANCE.unfold(Objects.requireNonNull(ID.find(ref.name())), primCall, state);
   }
 
-  public @NotNull ImmutableSeq<Term.Param> telescope() {
+  public Term.Param @NotNull [] telescope() {
     if (telescope.isEmpty()) return telescope;
     if (ref.concrete != null) {
       var signature = ref.concrete.signature;

@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.def;
 
-import kala.collection.immutable.ImmutableSeq;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.Term;
 import org.jetbrains.annotations.NotNull;
@@ -13,12 +12,12 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public sealed abstract class TopLevelDef implements Def permits UserDef, PrimDef {
-  public final @NotNull ImmutableSeq<Term.Param> telescope;
+  public final Term.Param @NotNull [] telescope;
   public final @NotNull Term result;
   public final @NotNull Sort.LvlVar @NotNull [] levels;
 
   protected TopLevelDef(
-    @NotNull ImmutableSeq<Term.Param> telescope,
+    Term.Param @NotNull [] telescope,
     @NotNull Term result, @NotNull Sort.LvlVar @NotNull [] levels
   ) {
     this.telescope = telescope;
@@ -26,7 +25,7 @@ public sealed abstract class TopLevelDef implements Def permits UserDef, PrimDef
     this.levels = levels;
   }
 
-  @Override public @NotNull ImmutableSeq<Term.Param> telescope() {
+  @Override public Term.Param @NotNull [] telescope() {
     return telescope;
   }
 

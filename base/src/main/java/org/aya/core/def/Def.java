@@ -2,8 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.def;
 
+import kala.collection.ArraySeq;
 import kala.collection.SeqLike;
-import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Unit;
 import org.aya.api.core.CoreDef;
 import org.aya.api.distill.AyaDocile;
@@ -26,10 +26,10 @@ import java.util.Objects;
  */
 public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
   static @NotNull Term defType(@NotNull DefVar<? extends Def, ? extends Signatured> defVar) {
-    return FormTerm.Pi.make(defTele(defVar), defResult(defVar));
+    return FormTerm.Pi.make(ArraySeq.wrap(defTele(defVar)), defResult(defVar));
   }
 
-  static @NotNull ImmutableSeq<Term.Param> defTele(@NotNull DefVar<? extends Def, ? extends Signatured> defVar) {
+  static Term.Param @NotNull [] defTele(@NotNull DefVar<? extends Def, ? extends Signatured> defVar) {
     if (defVar.core != null) return defVar.core.telescope();
       // guaranteed as this is already a core term
     else return Objects.requireNonNull(defVar.concrete.signature).param;
@@ -52,14 +52,14 @@ public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
       // guaranteed as this is already a core term
     else return Objects.requireNonNull(defVar.concrete.signature).result;
   }
-  static @NotNull ImmutableSeq<Term.Param>
+  static Term.Param @NotNull []
   substParams(@NotNull SeqLike<Term.@NotNull Param> param, Substituter.@NotNull TermSubst subst) {
     return param.view().drop(1).map(p -> p.subst(subst)).toImmutableSeq();
   }
 
   @Override @NotNull Term result();
   @Override @NotNull DefVar<? extends Def, ? extends Signatured> ref();
-  @Override @NotNull ImmutableSeq<Term.Param> telescope();
+  @Override Term.Param @NotNull [] telescope();
 
   <P, R> R accept(@NotNull Visitor<P, R> visitor, P p);
   @Override default @NotNull Doc toDoc(@NotNull DistillerOptions options) {
@@ -85,7 +85,7 @@ public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
    */
   record Signature(
     Sort.@NotNull LvlVar @NotNull [] sortParam,
-    @NotNull ImmutableSeq<Term.@NotNull Param> param,
+    @NotNull Term.Param @NotNull [] param,
     @NotNull Term result
   ) implements AyaDocile {
     @Contract("_ -> new") public @NotNull Signature inst(@NotNull Substituter.TermSubst subst) {

@@ -20,7 +20,7 @@ public final class DataDef extends UserDef {
   public final @NotNull ImmutableSeq<CtorDef> body;
 
   public DataDef(
-    @NotNull DefVar<DataDef, Decl.DataDecl> ref, @NotNull ImmutableSeq<Term.Param> telescope,
+    @NotNull DefVar<DataDef, Decl.DataDecl> ref, Term.Param @NotNull [] telescope,
     @NotNull Sort.LvlVar @NotNull [] levels, @NotNull Term result,
     @NotNull ImmutableSeq<CtorDef> body
   ) {
@@ -47,9 +47,9 @@ public final class DataDef extends UserDef {
    * @author ice1000
    */
   public record CtorTelescopes(
-    @NotNull ImmutableSeq<Term.Param> dataTele,
+    Term.Param @NotNull [] dataTele,
     @NotNull Sort @NotNull [] sortTele,
-    @NotNull ImmutableSeq<Term.Param> conTele
+    Term.Param @NotNull [] conTele
   ) {
     public @NotNull CallTerm.Con toConCall(DefVar<CtorDef, Decl.DataCtor> conVar) {
       return new CallTerm.Con(fromCtor(conVar), conVar,
@@ -65,7 +65,7 @@ public final class DataDef extends UserDef {
         .toImmutableSeq(), sortTele, conTele.map(Term.Param::rename));
     }
 
-    public @NotNull ImmutableSeq<Term.Param> params() {
+    public Term.Param @NotNull [] params() {
       return dataTele.concat(conTele);
     }
   }

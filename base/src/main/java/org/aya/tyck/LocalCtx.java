@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.DynamicSeq;
 import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableMap;
@@ -54,7 +53,7 @@ public record LocalCtx(@NotNull MutableMap<LocalVar, Term> localMap, @Nullable L
     }
   }
 
-  public @NotNull ImmutableSeq<Term.Param> extract() {
+  public Term.Param @NotNull [] extract() {
     var ctx = DynamicSeq.<Term.Param>create();
     var map = this;
     while (map != null) {

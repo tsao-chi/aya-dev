@@ -9,7 +9,6 @@ import kala.tuple.Unit;
 import org.aya.api.core.CorePat;
 import org.aya.api.distill.AyaDocile;
 import org.aya.api.distill.DistillerOptions;
-import org.aya.util.error.SourcePos;
 import org.aya.api.ref.DefVar;
 import org.aya.api.ref.LocalVar;
 import org.aya.api.util.Arg;
@@ -23,6 +22,7 @@ import org.aya.distill.BaseDistiller;
 import org.aya.distill.CoreDistiller;
 import org.aya.pretty.doc.Doc;
 import org.aya.tyck.LocalCtx;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +46,7 @@ public sealed interface Pat extends CorePat {
     return accept(new CoreDistiller(options), BaseDistiller.Outer.Free);
   }
   void storeBindings(@NotNull LocalCtx localCtx);
-  static @NotNull ImmutableSeq<Term.Param> extractTele(@NotNull SeqLike<Pat> pats) {
+  static Term.Param @NotNull [] extractTele(@NotNull SeqLike<Pat> pats) {
     var localCtx = new LocalCtx();
     for (var pat : pats) pat.storeBindings(localCtx);
     return localCtx.extract();

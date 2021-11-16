@@ -24,7 +24,7 @@ public final class CtorDef extends SubLevelDef {
   public CtorDef(
     @NotNull DefVar<DataDef, Decl.DataDecl> dataRef, @NotNull DefVar<CtorDef, Decl.DataCtor> ref,
     @NotNull ImmutableSeq<Pat> pats,
-    @NotNull ImmutableSeq<Term.Param> ownerTele, @NotNull ImmutableSeq<Term.Param> selfTele,
+    Term.Param @NotNull [] ownerTele, Term.Param @NotNull [] selfTele,
     @NotNull ImmutableSeq<Matching> clauses, @NotNull Term result, boolean coerce
   ) {
     super(ownerTele, selfTele, result, clauses, coerce);
@@ -34,7 +34,7 @@ public final class CtorDef extends SubLevelDef {
     this.pats = pats;
   }
 
-  public static @NotNull ImmutableSeq<Term.Param> conTele(@NotNull DefVar<CtorDef, Decl.DataCtor> conVar) {
+  public static Term.Param @NotNull [] conTele(@NotNull DefVar<CtorDef, Decl.DataCtor> conVar) {
     if (conVar.core != null) return conVar.core.selfTele;
     else return Objects.requireNonNull(conVar.concrete.signature).param();
   }
@@ -61,7 +61,7 @@ public final class CtorDef extends SubLevelDef {
     return ref;
   }
 
-  @Override public @NotNull ImmutableSeq<Term.Param> telescope() {
+  @Override public Term.Param @NotNull [] telescope() {
     return fullTelescope().toImmutableSeq();
   }
 }

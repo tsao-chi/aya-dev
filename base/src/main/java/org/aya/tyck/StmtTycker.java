@@ -232,7 +232,7 @@ public record StmtTycker(
     return elaborated;
   }
 
-  private @NotNull ImmutableSeq<Term.Param>
+  private Term.Param @NotNull []
   checkTele(@NotNull ExprTycker exprTycker, @NotNull ImmutableSeq<Expr.Param> tele, @NotNull Term univ) {
     var okTele = tele.map(param -> {
       assert param.type() != null; // guaranteed by AyaProducer

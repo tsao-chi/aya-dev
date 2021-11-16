@@ -24,7 +24,7 @@ public sealed abstract class UserDef extends TopLevelDef permits DataDef, FnDef,
    */
   public @Nullable ImmutableSeq<Problem> problems;
 
-  protected UserDef(@NotNull ImmutableSeq<Term.Param> telescope, @NotNull Term result, @NotNull Sort.LvlVar @NotNull [] levels) {
+  protected UserDef(Term.Param @NotNull [] telescope, @NotNull Term result, @NotNull Sort.LvlVar @NotNull [] levels) {
     super(telescope, result, levels);
   }
 }

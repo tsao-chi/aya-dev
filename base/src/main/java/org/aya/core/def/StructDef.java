@@ -21,7 +21,7 @@ public final class StructDef extends UserDef {
 
   public StructDef(
     @NotNull DefVar<StructDef, Decl.StructDecl> ref,
-    @NotNull ImmutableSeq<Term.Param> telescope,
+    Term.Param @NotNull [] telescope,
     @NotNull Sort.LvlVar @NotNull [] levels,
     @NotNull Term result,
     @NotNull ImmutableSeq<FieldDef> fields

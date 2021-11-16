@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Unit;
 import org.aya.api.ref.LocalVar;
 import org.aya.api.util.Arg;
+import org.aya.core.sort.Sort;
 import org.aya.core.term.CallTerm;
 import org.aya.core.term.IntroTerm;
 import org.aya.core.term.RefTerm;
@@ -26,7 +27,7 @@ public class PatToTerm implements Pat.Visitor<Unit, Term> {
   }
 
   @Override public Term visitPrim(Pat.@NotNull Prim prim, Unit unit) {
-    return new CallTerm.Prim(prim.ref(), ImmutableSeq.empty(), ImmutableSeq.empty());
+    return new CallTerm.Prim(prim.ref(), new Sort[0], ImmutableSeq.empty());
   }
 
   @Override public Term visitBind(Pat.@NotNull Bind bind, Unit unit) {

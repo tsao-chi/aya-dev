@@ -13,6 +13,7 @@ import org.aya.api.ref.LocalVar;
 import org.aya.api.util.Arg;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
+import org.aya.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -52,7 +53,8 @@ public sealed interface SerTerm extends Serializable {
 
   @NotNull Term de(@NotNull DeState state);
 
-  record SerParam(boolean explicit, boolean pattern, @NotNull SimpVar var, @NotNull SerTerm term) implements Serializable {
+  record SerParam(boolean explicit, boolean pattern, @NotNull SimpVar var,
+                  @NotNull SerTerm term) implements Serializable {
     public @NotNull Term.Param de(@NotNull DeState state) {
       return new Term.Param(state.var(var), term.de(state), pattern, explicit);
     }
@@ -114,11 +116,11 @@ public sealed interface SerTerm extends Serializable {
   }
 
   record CallData(
-    @NotNull ImmutableSeq<SerLevel.Max> sortArgs,
+    @NotNull SerLevel.Max @NotNull [] sortArgs,
     @NotNull ImmutableSeq<SerArg> args
   ) implements Serializable {
-    public @NotNull ImmutableSeq<Sort> de(@NotNull MutableMap<Integer, Sort.LvlVar> levelCache) {
-      return sortArgs.map(max -> max.de(levelCache));
+    public @NotNull Sort @NotNull [] de(@NotNull MutableMap<Integer, Sort.LvlVar> levelCache) {
+      return ArrayUtil.map(sortArgs, new Sort[0], max -> max.de(levelCache));
     }
 
     public @NotNull ImmutableSeq<Arg<Term>> de(@NotNull DeState state) {
@@ -171,14 +173,14 @@ public sealed interface SerTerm extends Serializable {
   record Access(
     @NotNull SerTerm of,
     @NotNull SerDef.QName ref,
-    @NotNull ImmutableSeq<SerLevel.@NotNull Max> sortArgs,
+    @NotNull SerLevel.Max @NotNull [] sortArgs,
     @NotNull ImmutableSeq<@NotNull SerArg> structArgs,
     @NotNull ImmutableSeq<@NotNull SerArg> fieldArgs
   ) implements SerTerm {
     @Override public @NotNull Term de(@NotNull DeState state) {
       return new CallTerm.Access(
         of.de(state), state.def(ref),
-        sortArgs.map(max -> max.de(state.levelCache)),
+        ArrayUtil.map(sortArgs, new Sort[0], level -> level.de(state.levelCache())),
         structArgs.map(arg -> arg.de(state)),
         fieldArgs.map(arg -> arg.de(state)));
     }

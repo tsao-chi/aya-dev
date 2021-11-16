@@ -3,7 +3,6 @@
 package org.aya.tyck.unify;
 
 import kala.collection.SeqLike;
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableHashMap;
 import kala.collection.mutable.MutableMap;
 import kala.tuple.Tuple2;
@@ -26,6 +25,7 @@ import org.aya.core.visitor.Unfolder;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.HoleProblem;
 import org.aya.tyck.trace.Trace;
+import org.aya.util.ArrayUtil;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Contract;
@@ -167,12 +167,12 @@ public final class DefEq {
 
   @NotNull private LevelSubst levels(
     @NotNull DefVar<? extends Def, ? extends Signatured> def,
-    ImmutableSeq<@NotNull Sort> l, ImmutableSeq<@NotNull Sort> r
+    @NotNull Sort @NotNull [] l, @NotNull Sort @NotNull [] r
   ) {
     var levelSubst = new LevelSubst.Simple(MutableMap.create());
-    for (var levels : l.zip(r).zip(Def.defLevels(def))) {
-      state.levelEqns().add(levels._1._1, levels._1._2, this.cmp, this.pos);
-      levelSubst.solution().put(levels._2, levels._1._1);
+    for (var levels : ArrayUtil.zip(l, r, Def.defLevels(def))) {
+      state.levelEqns().add(levels._1, levels._2, this.cmp, this.pos);
+      levelSubst.solution().put(levels._3, levels._1);
     }
     return levelSubst;
   }

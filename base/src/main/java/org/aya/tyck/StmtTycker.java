@@ -26,6 +26,7 @@ import org.aya.tyck.pat.Conquer;
 import org.aya.tyck.pat.PatClassifier;
 import org.aya.tyck.pat.PatTycker;
 import org.aya.tyck.trace.Trace;
+import org.aya.util.ArrayUtil;
 import org.aya.util.TreeBuilder;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
@@ -149,7 +150,7 @@ public record StmtTycker(
           var levelSubst = new LevelSubst.Simple(MutableMap.create());
           // Homotopy level goes first
           var levels = tycker.extractLevels();
-          for (var lvl : core.levels.zip(levels))
+          for (var lvl : ArrayUtil.zip(core.levels, levels))
             levelSubst.solution().put(lvl._1, new Sort(new Level.Reference<>(lvl._2)));
           var target = FormTerm.Pi.make(core.telescope(), core.result())
             .subst(Substituter.TermSubst.EMPTY, levelSubst);
@@ -158,7 +159,7 @@ public record StmtTycker(
         } else if (prim.result != null) {
           var result = tycker.synthesize(prim.result).wellTyped();
           tycker.unifyTyReported(result, core.result(), prim.result);
-        } else prim.signature = new Def.Signature(ImmutableSeq.empty(), core.telescope(), core.result());
+        } else prim.signature = new Def.Signature(new Sort.LvlVar[0], core.telescope(), core.result());
         tycker.solveMetas();
       }
     }
@@ -170,10 +171,7 @@ public record StmtTycker(
     assert dataSig != null;
     var dataArgs = dataSig.param().map(Term.Param::toArg);
     var sortParam = dataSig.sortParam();
-    var dataCall = new CallTerm.Data(dataRef, sortParam.view()
-      .map(Level.Reference::new)
-      .map(Sort::new)
-      .toImmutableSeq(), dataArgs);
+    var dataCall = new CallTerm.Data(dataRef, ExprTycker.var2Sort(sortParam), dataArgs);
     var sig = new Def.Signature(sortParam, dataSig.param(), dataCall);
     var patTycker = new PatTycker(tycker);
     // There might be patterns in the constructor

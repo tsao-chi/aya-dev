@@ -18,6 +18,7 @@ import org.aya.core.def.PrimDef;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatMatcher;
 import org.aya.core.pat.PatUnify;
+import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
 import org.aya.core.visitor.Substituter;
 import org.aya.tyck.ExprTycker;
@@ -197,7 +198,7 @@ public record PatClassifier(
             // Probably nonempty, and in this case, prim is defined, so we can safely call `.get`
             if (classes.isNotEmpty()) {
               // We're gonna instantiate the telescope with this term!
-              var lrCall = new CallTerm.Prim(prim.get().ref, ImmutableSeq.empty(), ImmutableSeq.empty());
+              var lrCall = new CallTerm.Prim(prim.get().ref, new Sort[0], ImmutableSeq.empty());
               var newTele = telescope.view()
                 .drop(1)
                 .map(param -> param.subst(target.ref(), lrCall))

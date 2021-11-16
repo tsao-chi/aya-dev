@@ -34,7 +34,7 @@ public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
       // guaranteed as this is already a core term
     else return Objects.requireNonNull(defVar.concrete.signature).param;
   }
-  static @NotNull ImmutableSeq<Sort.LvlVar> defLevels(@NotNull DefVar<? extends Def, ? extends Signatured> defVar) {
+  static @NotNull Sort.LvlVar @NotNull [] defLevels(@NotNull DefVar<? extends Def, ? extends Signatured> defVar) {
     return switch (defVar.core) {
       case TopLevelDef topLevel -> topLevel.levels;
       case CtorDef ctor -> defLevels(ctor.dataRef);
@@ -84,7 +84,7 @@ public sealed interface Def extends CoreDef permits SubLevelDef, TopLevelDef {
    * @author ice1000
    */
   record Signature(
-    @NotNull ImmutableSeq<Sort.@NotNull LvlVar> sortParam,
+    Sort.@NotNull LvlVar @NotNull [] sortParam,
     @NotNull ImmutableSeq<Term.@NotNull Param> param,
     @NotNull Term result
   ) implements AyaDocile {

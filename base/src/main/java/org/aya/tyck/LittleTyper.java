@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Unit;
 import org.aya.api.ref.DefVar;
 import org.aya.api.util.NormalizeMode;
@@ -79,7 +78,7 @@ public record LittleTyper(@Nullable TyckState state) implements Term.Visitor<Uni
   }
 
   @NotNull
-  private Term defCall(DefVar<? extends Def, ? extends Decl> ref, ImmutableSeq<@NotNull Sort> sortArgs) {
+  private Term defCall(DefVar<? extends Def, ? extends Decl> ref, @NotNull Sort @NotNull [] sortArgs) {
     var levels = Def.defLevels(ref);
     return Def.defResult(ref).subst(Substituter.TermSubst.EMPTY, Unfolder.buildSubst(levels, sortArgs));
   }

@@ -21,14 +21,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface CallTerm extends Term {
   @NotNull Var ref();
-  @NotNull ImmutableSeq<@NotNull Sort> sortArgs();
+  @NotNull Sort @NotNull [] sortArgs();
   @NotNull ImmutableSeq<@NotNull Arg<Term>> args();
 
   @FunctionalInterface
   interface Factory<D extends Def, S extends Signatured> {
     @Contract(pure = true, value = "_,_,_->new") @NotNull CallTerm make(
       DefVar<D, S> defVar,
-      ImmutableSeq<@NotNull Sort> sortArgs,
+      @NotNull Sort @NotNull [] sortArgs,
       ImmutableSeq<@NotNull Arg<Term>> args
     );
   }
@@ -51,7 +51,7 @@ public sealed interface CallTerm extends Term {
 
   record Fn(
     @NotNull DefVar<FnDef, Decl.FnDecl> ref,
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<Arg<@NotNull Term>> args
   ) implements CallTerm {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
@@ -61,7 +61,7 @@ public sealed interface CallTerm extends Term {
 
   record Prim(
     @NotNull DefVar<PrimDef, Decl.PrimDecl> ref,
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<Arg<@NotNull Term>> args
   ) implements CallTerm {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
@@ -71,7 +71,7 @@ public sealed interface CallTerm extends Term {
 
   record Data(
     @NotNull DefVar<DataDef, Decl.DataDecl> ref,
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<Arg<@NotNull Term>> args
   ) implements CallTerm {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
@@ -88,7 +88,7 @@ public sealed interface CallTerm extends Term {
    */
   record Struct(
     @NotNull DefVar<StructDef, Decl.StructDecl> ref,
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<Arg<@NotNull Term>> args
   ) implements CallTerm {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
@@ -99,7 +99,7 @@ public sealed interface CallTerm extends Term {
   record ConHead(
     @NotNull DefVar<DataDef, Decl.DataDecl> dataRef,
     @NotNull DefVar<CtorDef, Decl.DataCtor> ref,
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<Arg<@NotNull Term>> dataArgs
   ) {
     public @NotNull Data underlyingDataCall() {
@@ -115,7 +115,7 @@ public sealed interface CallTerm extends Term {
       @NotNull DefVar<DataDef, Decl.DataDecl> dataRef,
       @NotNull DefVar<CtorDef, Decl.DataCtor> ref,
       @NotNull ImmutableSeq<Arg<@NotNull Term>> dataArgs,
-      @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+      @NotNull Sort @NotNull [] sortArgs,
       @NotNull ImmutableSeq<Arg<@NotNull Term>> conArgs
     ) {
       this(new ConHead(dataRef, ref, sortArgs, dataArgs), conArgs);
@@ -125,7 +125,7 @@ public sealed interface CallTerm extends Term {
       return head.ref;
     }
 
-    @Override public @NotNull ImmutableSeq<@NotNull Sort> sortArgs() {
+    @Override public @NotNull Sort @NotNull [] sortArgs() {
       return head.sortArgs;
     }
 
@@ -158,8 +158,8 @@ public sealed interface CallTerm extends Term {
       return visitor.visitHole(this, p);
     }
 
-    @Override public @NotNull ImmutableSeq<@NotNull Sort> sortArgs() {
-      return ImmutableSeq.empty();
+    @Override public @NotNull Sort @NotNull [] sortArgs() {
+      return new Sort[0];
     }
   }
 
@@ -169,7 +169,7 @@ public sealed interface CallTerm extends Term {
   record Access(
     @NotNull Term of,
     @NotNull DefVar<FieldDef, Decl.StructField> ref,
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<@NotNull Arg<@NotNull Term>> structArgs,
     @NotNull ImmutableSeq<@NotNull Arg<@NotNull Term>> fieldArgs
   ) implements CallTerm {

@@ -23,6 +23,7 @@ import org.aya.core.def.Def;
 import org.aya.core.def.PrimDef;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatMatcher;
+import org.aya.core.sort.Sort;
 import org.aya.core.term.CallTerm;
 import org.aya.core.term.ErrorTerm;
 import org.aya.core.term.FormTerm;
@@ -109,7 +110,7 @@ public final class PatTycker {
           yield withError(new PatternProblem.TupleNonSig(tuple, term), tuple, term);
         // sig.result is a dummy term
         var sig = new Def.Signature(
-          ImmutableSeq.empty(),
+          new Sort.LvlVar[0],
           sigma.params(),
           new ErrorTerm(Doc.plain("Rua"), false));
         var as = tuple.as();
@@ -131,7 +132,7 @@ public final class PatTycker {
         var ctorCore = ctorRef.core;
         final var dataCall = realCtor._1;
         var levelSubst = Unfolder.buildSubst(Def.defLevels(dataCall.ref()), dataCall.sortArgs());
-        var sig = new Def.Signature(ImmutableSeq.empty(),
+        var sig = new Def.Signature(new Sort.LvlVar[0],
           Term.Param.subst(ctorCore.selfTele, realCtor._2, levelSubst), dataCall);
         var patterns = visitPatterns(sig, ctor.params().view());
         yield new Pat.Ctor(ctor.explicit(), realCtor._3.ref(), patterns._1, ctor.as(), realCtor._1);

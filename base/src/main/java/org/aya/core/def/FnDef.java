@@ -25,7 +25,7 @@ public final class FnDef extends UserDef {
 
   public FnDef(
     @NotNull DefVar<FnDef, Decl.FnDecl> ref, @NotNull ImmutableSeq<Term.Param> telescope,
-    @NotNull ImmutableSeq<Sort.LvlVar> levels, @NotNull Term result,
+    @NotNull Sort.LvlVar @NotNull [] levels, @NotNull Term result,
     @NotNull EnumSet<Modifier> modifiers,
     @NotNull Either<Term, ImmutableSeq<Matching>> body
   ) {

@@ -15,11 +15,11 @@ import org.jetbrains.annotations.NotNull;
 public sealed abstract class TopLevelDef implements Def permits UserDef, PrimDef {
   public final @NotNull ImmutableSeq<Term.Param> telescope;
   public final @NotNull Term result;
-  public final @NotNull ImmutableSeq<Sort.LvlVar> levels;
+  public final @NotNull Sort.LvlVar @NotNull [] levels;
 
   protected TopLevelDef(
     @NotNull ImmutableSeq<Term.Param> telescope,
-    @NotNull Term result, @NotNull ImmutableSeq<Sort.LvlVar> levels
+    @NotNull Term result, @NotNull Sort.LvlVar @NotNull [] levels
   ) {
     this.telescope = telescope;
     this.result = result;

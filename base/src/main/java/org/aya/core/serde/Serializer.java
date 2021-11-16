@@ -13,6 +13,7 @@ import org.aya.core.def.*;
 import org.aya.core.pat.Pat;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
+import org.aya.util.ArrayUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,8 +116,8 @@ public record Serializer(@NotNull Serializer.State state) implements
     return SerLevel.ser(level, state.levelCache());
   }
 
-  private @NotNull ImmutableSeq<SerLevel.Max> serializeLevels(@NotNull ImmutableSeq<Sort> sortArgs) {
-    return sortArgs.map(this::serialize);
+  private SerLevel.Max @NotNull [] serializeLevels(Sort @NotNull [] sortArgs) {
+    return ArrayUtil.map(sortArgs, new SerLevel.Max[0], this::serialize);
   }
 
   private @NotNull ImmutableSeq<SerPat> serializePats(@NotNull ImmutableSeq<Pat> pats) {
@@ -128,7 +129,7 @@ public record Serializer(@NotNull Serializer.State state) implements
   }
 
   private @NotNull SerTerm.CallData serializeCall(
-    @NotNull ImmutableSeq<@NotNull Sort> sortArgs,
+    @NotNull Sort @NotNull [] sortArgs,
     @NotNull ImmutableSeq<Arg<@NotNull Term>> args) {
     return new SerTerm.CallData(serializeLevels(sortArgs), serializeArgs(args));
   }
@@ -215,7 +216,7 @@ public record Serializer(@NotNull Serializer.State state) implements
 
   @Override public SerDef visitFn(@NotNull FnDef def, Unit unit) {
     return new SerDef.Fn(state.def(def.ref), serializeParams(def.telescope),
-      def.levels.map(lvl -> SerLevel.ser(lvl, state.levelCache)),
+      ArrayUtil.map(def.levels, new SerLevel.LvlVar[0], lvl -> SerLevel.ser(lvl, state.levelCache)),
       def.body.map(this::serialize, matchings -> matchings.map(this::serialize)),
       def.modifiers, serialize(def.result));
   }
@@ -224,7 +225,7 @@ public record Serializer(@NotNull Serializer.State state) implements
     return new SerDef.Data(
       state.def(def.ref),
       serializeParams(def.telescope),
-      def.levels.map(lvl -> SerLevel.ser(lvl, state.levelCache)),
+      ArrayUtil.map(def.levels, new SerLevel.LvlVar[0], lvl -> SerLevel.ser(lvl, state.levelCache)),
       serialize(def.result),
       def.body.map(ctor -> visitCtor(ctor, Unit.unit()))
     );
@@ -247,7 +248,7 @@ public record Serializer(@NotNull Serializer.State state) implements
     return new SerDef.Struct(
       state.def(def.ref()),
       serializeParams(def.telescope),
-      def.levels.map(lvl -> SerLevel.ser(lvl, state.levelCache)),
+      ArrayUtil.map(def.levels, new SerLevel.LvlVar[0], lvl -> SerLevel.ser(lvl, state.levelCache)),
       serialize(def.result),
       def.fields.map(field -> visitField(field, Unit.unit()))
     );
@@ -269,7 +270,7 @@ public record Serializer(@NotNull Serializer.State state) implements
   @Override public SerDef visitPrim(@NotNull PrimDef def, Unit unit) {
     return new SerDef.Prim(
       serializeParams(def.telescope),
-      def.levels.map(lvl -> SerLevel.ser(lvl, state.levelCache)),
+      ArrayUtil.map(def.levels, new SerLevel.LvlVar[0], lvl -> SerLevel.ser(lvl, state.levelCache)),
       serialize(def.result),
       Objects.requireNonNull(PrimDef.ID.find(def.ref.name()))
     );

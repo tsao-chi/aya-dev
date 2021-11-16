@@ -2,9 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
+import kala.collection.ArraySeq;
 import kala.collection.Seq;
 import kala.collection.immutable.ImmutableMap;
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.DynamicSeq;
 import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableMap;
@@ -37,6 +37,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.tyck.error.*;
 import org.aya.tyck.trace.Trace;
 import org.aya.tyck.unify.DefEq;
+import org.aya.util.ArrayUtil;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Contract;
@@ -94,7 +95,7 @@ public final class ExprTycker {
           Def.defTele(structRef).view().zip(structCall.args())
             .map(t -> Tuple.of(t._1.ref(), t._2.term()))));
         var levelSubst = new LevelSubst.Simple(MutableMap.from(
-          Def.defLevels(structRef).view().zip(structCall.sortArgs())));
+          ArrayUtil.zip(Def.defLevels(structRef), structCall.sortArgs())));
 
         var fields = DynamicSeq.<Tuple2<DefVar<FieldDef, Decl.StructField>, Term>>create();
         var missing = DynamicSeq.<Var>create();
@@ -243,9 +244,9 @@ public final class ExprTycker {
     if (IntroTerm.Lambda.unwrap(app, null) instanceof CallTerm call) {
       var sortArgs = call.sortArgs();
       var levels = univArgs.univArgs();
-      if (sortArgs.sizeEquals(levels)) sortArgs.zipView(levels).forEach(t ->
+      if (levels.sizeEquals(sortArgs.length)) ArraySeq.wrap(sortArgs).zipView(levels).forEach(t ->
         state.levelEqns().add(t._1, transformLevel(t._2), Ordering.Eq, univArgs.sourcePos()));
-      else reporter.report(new UnivArgsError.SizeMismatch(univArgs, sortArgs.size()));
+      else reporter.report(new UnivArgsError.SizeMismatch(univArgs, sortArgs.length));
     } else reporter.report(new UnivArgsError.Misplaced(univArgs));
   }
 
@@ -358,11 +359,11 @@ public final class ExprTycker {
     };
   }
 
-  public @NotNull ImmutableSeq<Sort.LvlVar> extractLevels() {
+  public @NotNull Sort.LvlVar @NotNull [] extractLevels() {
     return Seq.of(universe).view()
       .filter(state.levelEqns()::used)
       .appendedAll(levelMapping.valuesView())
-      .toImmutableSeq();
+      .toArray(new Sort.LvlVar[0]);
   }
 
   private void traceExit(Result result, @NotNull Expr expr) {
@@ -514,19 +515,21 @@ public final class ExprTycker {
     return new Result(IntroTerm.Lambda.make(teleRenamed, body), type);
   }
 
-  private @NotNull Tuple2<LevelSubst.Simple, ImmutableSeq<Sort>>
+  private @NotNull Tuple2<LevelSubst.Simple, @NotNull Sort @NotNull []>
   levelStuffs(@NotNull SourcePos pos, DefVar<? extends Def, ? extends Signatured> defVar) {
     var levelSubst = new LevelSubst.Simple(MutableMap.create());
-    var levelVars = Def.defLevels(defVar).map(v -> {
+    var levelVars = ArrayUtil.map(Def.defLevels(defVar), v -> {
       var lvlVar = new Sort.LvlVar(defVar.name() + "." + v.name(), pos);
       levelSubst.solution().put(v, new Sort(new Level.Reference<>(lvlVar)));
       return lvlVar;
     });
     state.levelEqns().vars().appendAll(levelVars);
-    return Tuple.of(levelSubst, levelVars.view()
-      .map(Level.Reference::new)
-      .map(Sort::new)
-      .toImmutableSeq());
+    return Tuple.of(levelSubst, var2Sort(levelVars));
+  }
+
+  public static @NotNull Sort[] var2Sort(Sort.LvlVar @NotNull [] levelVars) {
+    return ArrayUtil.map(levelVars, new Sort[0],
+      lvlVar -> new Sort(new Level.Reference<>(lvlVar)));
   }
 
   private boolean unifyTy(@NotNull Term upper, @NotNull Term lower, @NotNull SourcePos pos) {

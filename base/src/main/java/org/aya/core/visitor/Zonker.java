@@ -3,19 +3,19 @@
 package org.aya.core.visitor;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.DynamicSeq;
 import kala.collection.mutable.DynamicLinkedSeq;
+import kala.collection.mutable.DynamicSeq;
 import kala.tuple.Unit;
 import org.aya.api.distill.DistillerOptions;
 import org.aya.api.error.Problem;
 import org.aya.api.error.Reporter;
-import org.aya.util.error.SourcePos;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Style;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.LevelMismatchError;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,13 +72,11 @@ public final class Zonker implements TermFixpoint<Unit> {
     return metas.get(sol).accept(this, Unit.unit());
   }
 
-  @Override public @Nullable Sort visitSort(@NotNull Sort sort, Unit unit) {
+  @Override public @NotNull Sort visitSort(@NotNull Sort sort, Unit unit) {
     sort = state.levelEqns().applyTo(sort);
     var sourcePos = sort.unsolvedPos();
-    if (sourcePos != null) {
-      reportLevelSolverError(sourcePos);
-      return null;
-    } else return sort;
+    if (sourcePos != null) reportLevelSolverError(sourcePos);
+    return sort;
   }
 
   private void reportLevelSolverError(@NotNull SourcePos pos) {

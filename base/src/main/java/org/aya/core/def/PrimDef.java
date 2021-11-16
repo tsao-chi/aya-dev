@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 public final class PrimDef extends TopLevelDef {
   public PrimDef(
     @NotNull ImmutableSeq<Term.Param> telescope,
-    @NotNull ImmutableSeq<Sort.LvlVar> levels,
+    @NotNull Sort.LvlVar @NotNull [] levels,
     @NotNull Term result, @NotNull ID name
   ) {
     super(telescope, result, levels);
@@ -42,7 +42,7 @@ public final class PrimDef extends TopLevelDef {
   }
 
   public PrimDef(@NotNull Term result, @NotNull ID name) {
-    this(ImmutableSeq.empty(), ImmutableSeq.empty(), result, name);
+    this(ImmutableSeq.empty(), new Sort.LvlVar[0], result, name);
   }
 
   @Override public <P, R> R accept(@NotNull Visitor<P, R> visitor, P p) {
@@ -83,7 +83,7 @@ public final class PrimDef extends TopLevelDef {
     // Interval
     public static CallTerm.Prim intervalCall() {
       return new CallTerm.Prim(Factory.INSTANCE.getOrCreate(ID.INTERVAL).ref(),
-        ImmutableSeq.empty(), ImmutableSeq.empty());
+        new Sort[0], ImmutableSeq.empty());
     }
 
     public static final @NotNull PrimSeed INTERVAL = new PrimSeed(
@@ -135,14 +135,14 @@ public final class PrimDef extends TopLevelDef {
       var paramATy = new FormTerm.Pi(paramIToATy, result);
       var aRef = new RefTerm(paramA, paramATy);
       var left = Factory.INSTANCE.getOrCreate(ID.LEFT);
-      var baseAtLeft = new ElimTerm.App(aRef, new Arg<>(new CallTerm.Prim(left.ref, ImmutableSeq.empty(), ImmutableSeq.empty()), true));
+      var baseAtLeft = new ElimTerm.App(aRef, new Arg<>(new CallTerm.Prim(left.ref, new Sort[0], ImmutableSeq.empty()), true));
       return new PrimDef(
         ImmutableSeq.of(
           new Term.Param(paramA, paramATy, true),
           new Term.Param(new LocalVar("base"), baseAtLeft, true),
           new Term.Param(paramI, intervalCall(), true)
         ),
-        ImmutableSeq.of(universe),
+        new Sort.LvlVar[]{universe},
         new ElimTerm.App(aRef, new Arg<>(new RefTerm(paramI, intervalCall()), true)),
         ID.ARCOE
       );
@@ -162,16 +162,16 @@ public final class PrimDef extends TopLevelDef {
         var left = lr._1;
         var right = lr._2;
         if (primCall.ref() == left.ref)
-          return new CallTerm.Prim(right.ref, ImmutableSeq.empty(), ImmutableSeq.empty());
+          return new CallTerm.Prim(right.ref, new Sort[0], ImmutableSeq.empty());
         if (primCall.ref() == right.ref)
-          return new CallTerm.Prim(left.ref, ImmutableSeq.empty(), ImmutableSeq.empty());
+          return new CallTerm.Prim(left.ref, new Sort[0], ImmutableSeq.empty());
       }
-      return new CallTerm.Prim(prim.ref(), ImmutableSeq.empty(), ImmutableSeq.of(new Arg<>(arg, true)));
+      return new CallTerm.Prim(prim.ref(), new Sort[0], ImmutableSeq.of(new Arg<>(arg, true)));
     }
 
     public static final @NotNull PrimDef.PrimSeed INVOL = new PrimSeed(ID.INVOL, PrimSeed::invol, () -> new PrimDef(
       ImmutableSeq.of(new Term.Param(new LocalVar("i"), intervalCall(), true)),
-      ImmutableSeq.empty(),
+      new Sort.LvlVar[0],
       intervalCall(),
       ID.INVOL
     ), ImmutableSeq.empty());
@@ -199,7 +199,7 @@ public final class PrimDef extends TopLevelDef {
         ImmutableSeq.of(
           new Term.Param(new LocalVar("i"), intervalCall(), true),
           new Term.Param(new LocalVar("j"), intervalCall(), true)),
-        ImmutableSeq.empty(),
+        new Sort.LvlVar[0],
         intervalCall(),
         ID.SQUEEZE_LEFT
       ), ImmutableSeq.empty());

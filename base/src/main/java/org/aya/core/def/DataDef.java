@@ -21,7 +21,7 @@ public final class DataDef extends UserDef {
 
   public DataDef(
     @NotNull DefVar<DataDef, Decl.DataDecl> ref, @NotNull ImmutableSeq<Term.Param> telescope,
-    @NotNull ImmutableSeq<Sort.LvlVar> levels, @NotNull Term result,
+    @NotNull Sort.LvlVar @NotNull [] levels, @NotNull Term result,
     @NotNull ImmutableSeq<CtorDef> body
   ) {
     super(telescope, result, levels);
@@ -48,7 +48,7 @@ public final class DataDef extends UserDef {
    */
   public record CtorTelescopes(
     @NotNull ImmutableSeq<Term.Param> dataTele,
-    @NotNull ImmutableSeq<Sort> sortTele,
+    @NotNull Sort @NotNull [] sortTele,
     @NotNull ImmutableSeq<Term.Param> conTele
   ) {
     public @NotNull CallTerm.Con toConCall(DefVar<CtorDef, Decl.DataCtor> conVar) {

@@ -22,6 +22,7 @@ import org.aya.core.term.IntroTerm;
 import org.aya.core.term.Term;
 import org.aya.generic.Modifier;
 import org.aya.tyck.TyckState;
+import org.aya.util.ArrayUtil;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -54,10 +55,10 @@ public interface Unfolder<P> extends TermFixpoint<P> {
     return volynskaya != null ? volynskaya.data() : new CallTerm.Con(conCall.head(), dropped);
   }
 
-  static @NotNull LevelSubst buildSubst(ImmutableSeq<LvlVar> levelParams, ImmutableSeq<@NotNull Sort> levelArgs) {
+  static @NotNull LevelSubst buildSubst(LvlVar[] levelParams, @NotNull Sort @NotNull [] levelArgs) {
     var levelSubst = new LevelSubst.Simple(MutableMap.create());
-    assert levelParams.sizeEquals(levelArgs);
-    for (var app : levelArgs.zip(levelParams)) levelSubst.solution().put(app._2, app._1);
+    assert levelParams.length == levelArgs.length;
+    for (var app : ArrayUtil.zip(levelArgs, levelParams)) levelSubst.solution().put(app._2, app._1);
     return levelSubst;
   }
 

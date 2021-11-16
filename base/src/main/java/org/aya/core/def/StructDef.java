@@ -22,7 +22,7 @@ public final class StructDef extends UserDef {
   public StructDef(
     @NotNull DefVar<StructDef, Decl.StructDecl> ref,
     @NotNull ImmutableSeq<Term.Param> telescope,
-    @NotNull ImmutableSeq<Sort.LvlVar> levels,
+    @NotNull Sort.LvlVar @NotNull [] levels,
     @NotNull Term result,
     @NotNull ImmutableSeq<FieldDef> fields
   ) {

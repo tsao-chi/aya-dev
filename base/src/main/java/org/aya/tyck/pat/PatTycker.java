@@ -97,6 +97,12 @@ public final class PatTycker {
     return checkAllRhs(checkAllLhs(clauses, signature), resultPos, signature.result());
   }
 
+  private static void refinePatterns(@NotNull ImmutableSeq<LhsResult> clauses, int[] usages, @NotNull MCT mct) {
+    if (mct instanceof MCT.Node node) {// Refine the patterns?
+      for (var child : node.children()) refinePatterns(clauses, usages, child);
+    }
+  }
+
   public @NotNull PatResult elabClausesClassified(
     @NotNull ImmutableSeq<Pattern.@NotNull Clause> clauses,
     @NotNull Def.Signature signature,
@@ -107,7 +113,7 @@ public final class PatTycker {
       signature.param(), exprTycker, overallPos, true);
     if (noError()) {
       var usages = PatClassifier.firstMatchDomination(clauses, exprTycker.reporter, classes);
-      // refinePatterns(lhsResults, usages, classes);
+      refinePatterns(lhsResults, usages, classes);
     }
     return checkAllRhs(lhsResults, resultPos, signature.result());
   }

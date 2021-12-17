@@ -1,0 +1,12 @@
+open import Paths
+
+struct Group (E: Type) : Type
+  | infixl * E E : E
+bind tighter =
+  | ide : E
+  | inverse : E -> E
+  | ide-left (x : E) I : E { | _, left => ide * x | _, right => x }
+  | ide-right (x : E) I : E { | _, left => x * ide | _, right => x }
+  | inverse-left (x : E) I : E { | _, left => inverse x * x | _, right => ide }
+  | inverse-right (x : E) I : E { | _, left => x * inverse x | _, right => ide }
+  | *-assoc (x : E) (y : E) (z : E) I : E { | _, _, _, left => (x * y) * z | _, _, _, right => x * (y * z) }

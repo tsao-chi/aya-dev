@@ -109,16 +109,17 @@ public sealed interface SerDef extends Serializable {
     @NotNull ImmutableSeq<SerTerm.SerParam> telescope,
     @NotNull ImmutableSeq<SerLevel.LvlVar> levels,
     @NotNull SerLevel.Max result,
-    @NotNull ImmutableSeq<Field> fields
+    @NotNull ImmutableSeq<Field> fields,
+    @NotNull ImmutableSeq<Struct> parents
   ) implements SerDef {
-    @Override public @NotNull Def de(SerTerm.@NotNull DeState state) {
+    @Override public @NotNull StructDef de(SerTerm.@NotNull DeState state) {
       return new StructDef(
         state.newDef(name),
         telescope.map(tele -> tele.de(state)),
         levels.map(level -> level.de(state.levelCache())),
         result.de(state.levelCache()),
-        fields.map(field -> field.de(state))
-      );
+        fields.map(field -> field.de(state)),
+        parents.map(parent -> parent.de(state)));
     }
   }
 

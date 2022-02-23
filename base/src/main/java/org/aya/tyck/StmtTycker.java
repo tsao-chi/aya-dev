@@ -113,7 +113,15 @@ public record StmtTycker(
       case Decl.StructDecl decl -> {
         assert signature != null;
         var body = decl.fields.map(field -> traced(field, tycker, this::visitField));
-        yield new StructDef(decl.ref, signature.param(), signature.sortParam(), decl.sort, body);
+        var parents = decl.parents.map(parent -> {
+          var struct = tycker.synthesize(parent).wellTyped();
+          if(!(struct instanceof CallTerm.Struct structCall))
+            throw new UnsupportedOperationException(); // TODO
+          // TODO
+          return structCall.ref().core;
+        });
+        var fields = parents.flatMap(struct -> struct.fields).appendedAll(body);
+        yield new StructDef(decl.ref, signature.param(), signature.sortParam(), decl.sort, fields, parents);
       }
     };
   }

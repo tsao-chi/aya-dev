@@ -18,15 +18,23 @@ import org.jetbrains.annotations.NotNull;
 public final class StructDef extends UserDef.Type {
   public final @NotNull DefVar<StructDef, Decl.StructDecl> ref;
   public final @NotNull ImmutableSeq<FieldDef> fields;
+  public final @NotNull ImmutableSeq<StructDef> parents;
 
   public StructDef(
     @NotNull DefVar<StructDef, Decl.StructDecl> ref,
     @NotNull ImmutableSeq<Term.Param> telescope,
     @NotNull ImmutableSeq<Sort.LvlVar> levels,
     @NotNull Sort sort,
-    @NotNull ImmutableSeq<FieldDef> fields
-  ) {
+    @NotNull ImmutableSeq<FieldDef> fields,
+    @NotNull ImmutableSeq<StructDef> parents) {
     super(telescope, sort, levels);
+    parents.flatMap(parent -> parent.fields).forEach(field -> {
+      if(!fields.contains(field)) {
+        // TODO - better exception or check
+        throw new IllegalArgumentException("StructDef Called with missing fields.");
+      }
+    });
+    this.parents = parents;
     ref.core = this;
     this.ref = ref;
     this.fields = fields;

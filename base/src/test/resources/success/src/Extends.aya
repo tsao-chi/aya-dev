@@ -1,0 +1,7 @@
+open import Arith::Nat
+
+open struct A : Type
+  | a : Nat
+
+open struct B : Type extends A
+  | b : Nat

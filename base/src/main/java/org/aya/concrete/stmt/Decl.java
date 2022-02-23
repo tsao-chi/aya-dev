@@ -203,6 +203,7 @@ public sealed abstract class Decl extends Signatured implements Stmt {
     public final @NotNull DefVar<StructDef, StructDecl> ref;
     public @NotNull
     final ImmutableSeq<StructField> fields;
+    public final @NotNull ImmutableSeq<Expr.UnresolvedExpr> parents;
     public Sort sort;
 
     public StructDecl(
@@ -214,11 +215,12 @@ public sealed abstract class Decl extends Signatured implements Stmt {
       @NotNull Expr result,
       // @NotNull ImmutableSeq<String> superClassNames,
       @NotNull ImmutableSeq<StructField> fields,
-      @NotNull BindBlock bindBlock
-    ) {
+      @NotNull BindBlock bindBlock,
+      @NotNull ImmutableSeq<Expr.UnresolvedExpr> parents) {
       super(sourcePos, entireSourcePos, accessibility, opInfo, bindBlock, telescope, result);
       this.fields = fields;
       this.ref = DefVar.concrete(this, name);
+      this.parents = parents;
       fields.forEach(field -> field.structRef = ref);
     }
 

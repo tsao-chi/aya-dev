@@ -223,13 +223,14 @@ public record Serializer(@NotNull Serializer.State state) implements
     );
   }
 
-  @Override public SerDef visitStruct(@NotNull StructDef def, Unit unit) {
+  @Override public SerDef.Struct visitStruct(@NotNull StructDef def, Unit unit) {
     return new SerDef.Struct(
       state.def(def.ref()),
       serializeParams(def.telescope),
       def.levels.map(lvl -> SerLevel.ser(lvl, state.levelCache)),
       serialize(def.resultSort),
-      def.fields.map(field -> visitField(field, Unit.unit()))
+      def.fields.map(field -> visitField(field, Unit.unit())),
+      def.parents.map(parent -> visitStruct(parent, Unit.unit()))
     );
   }
 

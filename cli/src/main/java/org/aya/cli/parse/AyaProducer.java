@@ -684,6 +684,9 @@ public record AyaProducer(
     var fields = visitFields(ctx.field());
     var tele = visitTelescope(ctx.tele());
     var nameOrInfix = visitDeclNameOrInfix(ctx.declNameOrInfix(), countExplicit(tele));
+    ImmutableSeq<Expr.UnresolvedExpr> parents = ctx.qIdsComma() == null ? ImmutableSeq.empty() : this.visitQIdsComma(ctx.qIdsComma())
+      .map(qid -> new Expr.UnresolvedExpr(qid.sourcePos(), qid))
+      .collect(ImmutableSeq.factory());
     var struct = new Decl.StructDecl(
       nameOrInfix._1.sourcePos(),
       sourcePosOf(ctx),
@@ -693,8 +696,8 @@ public record AyaProducer(
       tele,
       type(ctx.type(), sourcePosOf(ctx)),
       fields,
-      bind == null ? BindBlock.EMPTY : visitBind(bind)
-    );
+      bind == null ? BindBlock.EMPTY : visitBind(bind),
+      parents);
     return Tuple2.of(struct, ctx.OPEN() == null ? ImmutableSeq.empty() : ImmutableSeq.of(
       new Command.Open(
         nameOrInfix._1.sourcePos(),

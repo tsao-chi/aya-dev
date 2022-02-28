@@ -1,7 +1,13 @@
 open import Arith::Nat
 
-open struct A : Type
+open struct StrA : Type
   | a : Nat
 
-open struct B : Type extends A
+open struct StrB : Type extends StrA
   | b : Nat
+
+def strb => new StrB { | a => zero | b => zero }
+
+def strbAsA : StrA => strb
+
+def strba => strb.a

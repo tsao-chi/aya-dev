@@ -63,6 +63,7 @@ public interface StmtResolver {
       case Decl.StructDecl decl -> {
         var local = resolveDeclSignature(decl, ExprResolver.LAX);
         var bodyResolver = local._1.body();
+        decl.parents = decl.parents.map(parent -> parent.accept(bodyResolver, local._2));
         decl.fields.forEach(field -> {
           var fieldLocal = bodyResolver.resolveParams(field.telescope, local._2);
           field.telescope = fieldLocal._1.toImmutableSeq();

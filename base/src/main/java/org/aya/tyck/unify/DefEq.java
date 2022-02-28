@@ -374,7 +374,16 @@ public final class DefEq {
         yield args ? freshUniv() : null;
       }
       case CallTerm.Struct lhs -> {
-        if (!(preRhs instanceof CallTerm.Struct rhs) || lhs.ref() != rhs.ref()) yield null;
+        if (!(preRhs instanceof CallTerm.Struct rhs)) yield null;
+        if (lhs.ref() != rhs.ref()) {
+          for (var parent : lhs.ref().core.parents) {
+            // todo: handle sortArgs and args
+            var lhs0 = new CallTerm.Struct(parent.ref(), lhs.sortArgs(), lhs.args());
+            var trial = compareUntyped(lhs0, rhs, lr, rl);
+            if (trial != null) yield trial;
+          }
+          yield null;
+        }
         var subst = levels(lhs.ref(), lhs.sortArgs(), rhs.sortArgs());
         var args = visitArgs(lhs.args(), rhs.args(), lr, rl, Term.Param.subst(Def.defTele(lhs.ref()), subst));
         yield args ? freshUniv() : null;

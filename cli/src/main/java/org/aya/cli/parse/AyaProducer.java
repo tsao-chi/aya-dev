@@ -684,7 +684,7 @@ public record AyaProducer(
     var fields = visitFields(ctx.field());
     var tele = visitTelescope(ctx.tele());
     var nameOrInfix = visitDeclNameOrInfix(ctx.declNameOrInfix(), countExplicit(tele));
-    ImmutableSeq<Expr.UnresolvedExpr> parents = ctx.qIdsComma() == null ? ImmutableSeq.empty() : this.visitQIdsComma(ctx.qIdsComma())
+    ImmutableSeq<Expr> parents = ctx.qIdsComma() == null ? ImmutableSeq.empty() : this.visitQIdsComma(ctx.qIdsComma())
       .map(qid -> new Expr.UnresolvedExpr(qid.sourcePos(), qid))
       .collect(ImmutableSeq.factory());
     var struct = new Decl.StructDecl(

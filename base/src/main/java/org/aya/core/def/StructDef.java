@@ -29,9 +29,15 @@ public final class StructDef extends UserDef.Type {
     @NotNull ImmutableSeq<StructDef> parents) {
     super(telescope, sort, levels);
     parents.flatMap(parent -> parent.fields).forEach(field -> {
-      if(!fields.contains(field)) {
+      if (!fields.contains(field)) {
         // TODO - better exception or check
         throw new IllegalArgumentException("StructDef Called with missing fields.");
+      }
+    });
+    parents.flatMap(parent -> parent.telescope).zip(telescope).forEach(t -> {
+      if (t._1 != t._2) {
+        // TODO - better exception or check
+        throw new IllegalArgumentException("StructDef Called with missing telescopes.");
       }
     });
     this.parents = parents;

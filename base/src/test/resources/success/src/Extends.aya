@@ -11,3 +11,10 @@ def strb => new StrB { | a => zero | b => zero }
 def strbAsA : StrA => strb
 
 def strba => strb.a
+
+open struct RawPair (A : Type) (B : Type) : Type
+  | fst : A
+  | snd : B
+
+open struct Pair (A : Type) (B : Type) : Type extends RawPair A B
+  | we-are-together : Sig A ** B => (fst, snd)

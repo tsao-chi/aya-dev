@@ -230,7 +230,7 @@ public record Serializer(@NotNull Serializer.State state) implements
       def.levels.map(lvl -> SerLevel.ser(lvl, state.levelCache)),
       serialize(def.resultSort),
       def.fields.map(field -> visitField(field, Unit.unit())),
-      def.parents.map(parent -> visitStruct(parent, Unit.unit()))
+      def.parents.map(parent -> visitStructCall(parent, Unit.unit()))
     );
   }
 

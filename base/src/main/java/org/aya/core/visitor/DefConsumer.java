@@ -50,7 +50,9 @@ public interface DefConsumer<P> extends Def.Visitor<P, Unit>, TermConsumer<P> {
   @Override default Unit visitStruct(@NotNull StructDef def, P p) {
     visitDef(def, p);
     def.fields.forEach(field -> field.accept(this, p));
-    def.parents.forEach(parent -> parent.accept(this, p));
+    def.parents.forEach(parent -> {
+      visitStructCall(parent, p);
+    });
     return Unit.unit();
   }
 

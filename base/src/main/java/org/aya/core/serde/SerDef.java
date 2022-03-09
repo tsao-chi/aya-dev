@@ -110,7 +110,7 @@ public sealed interface SerDef extends Serializable {
     @NotNull ImmutableSeq<SerLevel.LvlVar> levels,
     @NotNull SerLevel.Max result,
     @NotNull ImmutableSeq<Field> fields,
-    @NotNull ImmutableSeq<Struct> parents
+    @NotNull ImmutableSeq<SerTerm.StructCall> parents
   ) implements SerDef {
     @Override public @NotNull StructDef de(SerTerm.@NotNull DeState state) {
       return new StructDef(

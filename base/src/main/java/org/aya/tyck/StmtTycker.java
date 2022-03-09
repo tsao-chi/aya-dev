@@ -118,9 +118,9 @@ public record StmtTycker(
           if(!(struct instanceof CallTerm.Struct structCall))
             throw new UnsupportedOperationException(); // TODO
           // TODO
-          return structCall.ref().core;
+          return structCall;
         });
-        var fields = parents.flatMap(struct -> struct.fields).appendedAll(body);
+        var fields = parents.flatMap(struct -> struct.ref().core.fields).appendedAll(body);
         yield new StructDef(decl.ref, signature.param(), signature.sortParam(), decl.sort, fields, parents);
       }
     };

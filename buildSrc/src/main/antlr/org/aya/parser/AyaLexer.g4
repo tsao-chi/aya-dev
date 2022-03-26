@@ -48,6 +48,7 @@ PRIM : 'prim';
 EXTENDS : 'extends';
 NEW_KW : 'new';
 PATTERN_KW : 'pattern';
+THIS_KW : 'this';
 
 // Unimplemented but reserved
 DO_KW : 'do';
@@ -80,6 +81,7 @@ LPAREN : '(';
 RPAREN : ')';
 LGOAL : '{?';
 RGOAL : '?}';
+AT : '@';
 
 // literals
 NUMBER : [0-9]+;

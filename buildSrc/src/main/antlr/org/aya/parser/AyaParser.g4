@@ -63,7 +63,7 @@ fnModifiers : OPAQUE
             | PATTERN_KW
             ;
 
-structDecl : sampleModifiers? (PUBLIC? OPEN)? STRUCT declNameOrInfix tele* type? (EXTENDS idsComma)? (BAR field)* bindBlock?;
+structDecl : sampleModifiers? (PUBLIC? OPEN)? STRUCT declNameOrInfix tele* type? (EXTENDS exprList)? (BAR field)* bindBlock?;
 
 primDecl : PRIM weakId tele* type? ;
 
@@ -81,6 +81,8 @@ dataCtor : COERCE? declNameOrInfix tele* clauses? bindBlock?;
 
 dataCtorClause : BAR patterns IMPLIES dataCtor;
 
+thisExpr : THIS_KW | THIS_KW AT qualifiedId;
+
 // expressions
 expr : atom                                 # single
      | expr argument+                       # app
@@ -92,6 +94,7 @@ expr : atom                                 # single
      | SIGMA tele+ SUCHTHAT expr            # sigma
      | LAMBDA tele+ (IMPLIES expr?)?        # lam
      | MATCH exprList clauses               # match
+     | thisExpr                             # this
      ;
 
 newArg : BAR weakId ids IMPLIES expr;

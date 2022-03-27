@@ -2,8 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.visitor;
 
-import kala.collection.immutable.ImmutableMap;
-import kala.tuple.Tuple;
 import org.aya.core.term.*;
 import org.aya.generic.Arg;
 import org.jetbrains.annotations.NotNull;
@@ -21,10 +19,6 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
       && term.contextArgs().sameElements(contextArgs, true)
       && term.args().sameElements(args, true)) return term;
     return new CallTerm.Hole(term.ref(), ulift() + term.ulift(), contextArgs, args);
-  }
-  @Override
-  default @NotNull Term visitFieldRef(@NotNull RefTerm.Field term, P p) {
-    return term;
   }
 
   default int ulift() {
@@ -57,9 +51,12 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
   }
 
   @Override default @NotNull Term visitStructCall(@NotNull CallTerm.Struct structCall, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     var args = structCall.args().map(arg -> visitArg(arg, p));
     if (ulift() == 0 && structCall.args().sameElements(args, true)) return structCall;
-    return new CallTerm.Struct(structCall.ref(), ulift() + structCall.ulift(), args);
+    return new CallTerm.StructCall(structCall.ref(), ulift() + structCall.ulift(), args);
+    */
   }
 
   private <T> T visitParameterized(
@@ -128,12 +125,15 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
   }
 
   @Override default @NotNull Term visitNew(@NotNull IntroTerm.New struct, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     var itemsView = struct.params().view()
       .map((k, v) -> Tuple.of(k, v.accept(this, p)));
     var items = ImmutableMap.from(itemsView);
     // if (struct.params().view().sameElements(items, true)) return struct;
     // Supposed to succeed
     return new IntroTerm.New((CallTerm.Struct) struct.struct().accept(this, p), items);
+     */
   }
 
   @Override default @NotNull Term visitProj(@NotNull ElimTerm.Proj term, P p) {
@@ -143,6 +143,8 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
   }
 
   @Override default @NotNull Term visitAccess(@NotNull CallTerm.Access term, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     var tuple = term.of().accept(this, p);
     var args = term.fieldArgs().map(arg -> visitArg(arg, p));
     var structArgs = term.structArgs().map(arg -> visitArg(arg, p));
@@ -150,5 +152,6 @@ public interface TermFixpoint<P> extends Term.Visitor<P, @NotNull Term> {
       && term.structArgs().sameElements(structArgs, true)
       && tuple == term.of()) return term;
     return new CallTerm.Access(tuple, term.ref(), structArgs, args);
+    */
   }
 }

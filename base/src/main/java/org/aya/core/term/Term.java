@@ -35,9 +35,7 @@ import org.jetbrains.annotations.TestOnly;
  *
  * @author ice1000
  */
-public sealed interface Term extends AyaDocile permits
-  CallTerm, ElimTerm, ErrorTerm, FormTerm, IntroTerm,
-  RefTerm, RefTerm.Field, RefTerm.MetaPat {
+public sealed interface Term extends AyaDocile permits CallTerm, CallTerm.Access, ElimTerm, ErrorTerm, FormTerm, IntroTerm, RefTerm, RefTerm.MetaPat {
   <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p);
 
   default <P, R> R accept(@NotNull Visitor<P, R> visitor, P p) {
@@ -127,14 +125,13 @@ public sealed interface Term extends AyaDocile permits
     R visitFnCall(CallTerm.@NotNull Fn fnCall, P p);
     R visitDataCall(CallTerm.@NotNull Data dataCall, P p);
     R visitConCall(CallTerm.@NotNull Con conCall, P p);
-    R visitStructCall(CallTerm.@NotNull Struct structCall, P p);
+    R visitStructCall(@NotNull CallTerm.Struct struct, P p);
     R visitPrimCall(@NotNull CallTerm.Prim prim, P p);
     R visitTup(@NotNull IntroTerm.Tuple tuple, P p);
     R visitNew(@NotNull IntroTerm.New newTerm, P p);
     R visitProj(@NotNull ElimTerm.Proj proj, P p);
     R visitAccess(@NotNull CallTerm.Access access, P p);
     R visitHole(@NotNull CallTerm.Hole hole, P p);
-    R visitFieldRef(@NotNull RefTerm.Field field, P p);
     R visitError(@NotNull ErrorTerm error, P p);
     R visitMetaPat(@NotNull RefTerm.MetaPat metaPat, P p);
   }

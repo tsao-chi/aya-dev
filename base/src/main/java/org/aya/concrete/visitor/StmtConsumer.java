@@ -46,9 +46,12 @@ public interface StmtConsumer<P> extends Stmt.Visitor<P, Unit>, ExprConsumer<P> 
   }
 
   @Override default Unit visitStruct(@NotNull Decl.StructDecl decl, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     visitDecl(decl, p);
     decl.fields.forEach(field -> traced(field, p, this::visitField));
     return Unit.unit();
+     */
   }
 
   @Override default Unit visitFn(@NotNull Decl.FnDecl decl, P p) {
@@ -82,14 +85,6 @@ public interface StmtConsumer<P> extends Stmt.Visitor<P, Unit>, ExprConsumer<P> 
     visitSignatured(ctor, p);
     ctor.patterns.forEach(pattern -> visitPattern(pattern, p));
     ctor.clauses.forEach(clause -> visitClause(clause, p));
-    return Unit.unit();
-  }
-
-  @Override default Unit visitField(Decl.@NotNull StructField field, P p) {
-    visitSignatured(field, p);
-    field.result.accept(this, p);
-    field.clauses.forEach(clause -> visitClause(clause, p));
-    field.body.forEach(expr -> expr.accept(this, p));
     return Unit.unit();
   }
 

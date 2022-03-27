@@ -64,7 +64,6 @@ public sealed interface Def extends AyaDocile permits SubLevelDef, TopLevelDef {
     R visitData(@NotNull DataDef def, P p);
     R visitCtor(@NotNull CtorDef def, P p);
     R visitStruct(@NotNull StructDef def, P p);
-    R visitField(@NotNull FieldDef def, P p);
     R visitPrim(@NotNull PrimDef def, P p);
   }
 

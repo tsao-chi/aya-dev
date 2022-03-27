@@ -48,15 +48,6 @@ public record RefFinder(boolean withBody) implements
   @Override public Unit visitStruct(@NotNull StructDef def, @NotNull MutableList<Def> references) {
     tele(references, def.telescope());
     def.result().accept(this, references);
-    if (withBody) def.fields.forEach(t -> t.accept(this, references));
-    return Unit.unit();
-  }
-
-  @Override public Unit visitField(@NotNull FieldDef def, @NotNull MutableList<Def> references) {
-    tele(references, def.telescope());
-    def.body.forEach(t -> t.accept(this, references));
-    def.result().accept(this, references);
-    if (withBody) for (var clause : def.clauses) clause.body().accept(this, references);
     return Unit.unit();
   }
 

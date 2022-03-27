@@ -234,8 +234,10 @@ public class ConcreteDistiller extends BaseDistiller<Expr> {
           visitTele(decl.telescope));
         appendResult(prelude, decl.result);
         yield Doc.cat(Doc.sepNonEmpty(prelude),
-          Doc.emptyIf(decl.fields.isEmpty(), () -> Doc.cat(Doc.line(), Doc.nest(2, Doc.vcat(
-            decl.fields.view().map(this::signatured))))),
+          Doc.empty(),
+          // TODO
+          //Doc.emptyIf(decl.fields.isEmpty(), () -> Doc.cat(Doc.line(), Doc.nest(2, Doc.vcat(
+          //  decl.fields.view().map(this::signatured))))),
           visitBindBlock(decl.bindBlock)
         );
       }
@@ -283,18 +285,6 @@ public class ConcreteDistiller extends BaseDistiller<Expr> {
   public @NotNull Doc signatured(@NotNull Signatured signatured) {
     return switch (signatured) {
       case Decl decl -> decl(decl);
-      case Decl.StructField field -> {
-        var doc = MutableList.of(Doc.symbol("|"),
-          coe(field.coerce),
-          linkDef(field.ref, FIELD_CALL),
-          visitTele(field.telescope));
-        appendResult(doc, field.result);
-        if (field.body.isDefined()) {
-          doc.append(Doc.symbol("=>"));
-          doc.append(term(Outer.Free, field.body.get()));
-        }
-        yield Doc.cblock(Doc.sepNonEmpty(doc), 2, visitClauses(field.clauses));
-      }
       case Decl.DataCtor ctor -> {
         var doc = Doc.cblock(Doc.sepNonEmpty(
           coe(ctor.coerce),

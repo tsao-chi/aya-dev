@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.tuple.Tuple;
@@ -15,7 +14,6 @@ import org.aya.concrete.stmt.Signatured;
 import org.aya.core.def.*;
 import org.aya.core.term.*;
 import org.aya.core.visitor.Subst;
-import org.aya.core.visitor.Unfolder;
 import org.aya.generic.Arg;
 import org.aya.generic.Constants;
 import org.aya.generic.Modifier;
@@ -23,7 +21,6 @@ import org.aya.generic.util.InternalException;
 import org.aya.generic.util.NormalizeMode;
 import org.aya.ref.DefVar;
 import org.aya.ref.LocalVar;
-import org.aya.ref.Var;
 import org.aya.tyck.env.LocalCtx;
 import org.aya.tyck.env.MapLocalCtx;
 import org.aya.tyck.error.*;
@@ -99,6 +96,8 @@ public final class ExprTycker extends Tycker {
         yield new Result(result.wellTyped.lift(levels), result.type.lift(levels));
       }
       case Expr.NewExpr newExpr -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var structExpr = newExpr.struct();
         var struct = instImplicits(synthesize(structExpr).wellTyped, structExpr.sourcePos());
         if (!(struct instanceof CallTerm.Struct structCall))
@@ -149,8 +148,11 @@ public final class ExprTycker extends Tycker {
         if (conFields.isNotEmpty())
           yield fail(newExpr, structCall, new FieldProblem.NoSuchFieldError(newExpr.sourcePos(), conFields.map(f -> f.name().data())));
         yield new Result(new IntroTerm.New(structCall, ImmutableMap.from(fields)), structCall);
+         */
       }
       case Expr.ProjExpr proj -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var struct = proj.tup();
         var projectee = instImplicits(synthesize(struct), struct.sourcePos());
         yield proj.ix().fold(ix -> {
@@ -183,6 +185,7 @@ public final class ExprTycker extends Tycker {
               FormTerm.Pi.make(tele, field.result().subst(structSubst)));
           }
         );
+         */
       }
       case Expr.TupExpr tuple -> {
         var items = tuple.items().map(this::synthesize);
@@ -440,7 +443,7 @@ public final class ExprTycker extends Tycker {
     } else if (var.core instanceof DataDef || var.concrete instanceof Decl.DataDecl) {
       return defCall(pos, (DefVar<DataDef, Decl.DataDecl>) var, CallTerm.Data::new);
     } else if (var.core instanceof StructDef || var.concrete instanceof Decl.StructDecl) {
-      return defCall(pos, (DefVar<StructDef, Decl.StructDecl>) var, CallTerm.Struct::new);
+      return defCall(pos, (DefVar<StructDef, Decl.StructDecl>) var, CallTerm.Struct::create);
     } else if (var.core instanceof CtorDef || var.concrete instanceof Decl.DataDecl.DataCtor) {
       var conVar = (DefVar<CtorDef, Decl.DataDecl.DataCtor>) var;
       var tele = Def.defTele(conVar);
@@ -448,13 +451,6 @@ public final class ExprTycker extends Tycker {
       var telescopes = CtorDef.telescopes(conVar).rename();
       var body = telescopes.toConCall(conVar);
       return new Result(IntroTerm.Lambda.make(telescopes.params(), body), type);
-    } else if (var.core instanceof FieldDef || var.concrete instanceof Decl.StructField) {
-      // the code runs to here because we are tycking a StructField in a StructDecl
-      // there should be two-stage check for this case:
-      //  - check the definition's correctness: happens here
-      //  - check the field value's correctness: happens in `visitNew` after the body was instantiated
-      var field = (DefVar<FieldDef, Decl.StructField>) var;
-      return new Result(new RefTerm.Field(field, 0), Def.defType(field));
     } else {
       final var msg = "Def var `" + var.name() + "` has core `" + var.core + "` which we don't know.";
       throw new InternalException(msg);

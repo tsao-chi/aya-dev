@@ -32,10 +32,6 @@ public class SigRefFinder implements ExprConsumer<@NotNull MutableList<TyckUnit>
     switch (sn) {
       case Decl decl -> decl(references, decl);
       case Decl.DataCtor ctor -> tele(ctor.telescope, references);
-      case Decl.StructField field -> {
-        tele(field.telescope, references);
-        field.result.accept(this, references);
-      }
       case Command.Module module -> {}
       case Command cmd -> {}
       case Remark remark -> {

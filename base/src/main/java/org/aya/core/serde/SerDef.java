@@ -75,43 +75,16 @@ public sealed interface SerDef extends Serializable {
     }
   }
 
-  record Field(
-    @NotNull QName struct,
-    @NotNull QName self,
-    @NotNull ImmutableSeq<SerTerm.SerParam> ownerTele,
-    @NotNull ImmutableSeq<SerTerm.SerParam> selfTele,
-    @NotNull SerTerm result,
-    @NotNull ImmutableSeq<SerPat.Matchy> clauses,
-    @NotNull Option<SerTerm> body,
-    boolean coerce
-  ) implements SerDef {
-    @Override
-    public @NotNull FieldDef de(SerTerm.@NotNull DeState state) {
-      return new FieldDef(
-        state.resolve(struct),
-        state.newDef(self),
-        ownerTele.map(tele -> tele.de(state)),
-        selfTele.map(tele -> tele.de(state)),
-        result.de(state),
-        clauses.map(matching -> matching.de(state)),
-        body.map(serTerm -> serTerm.de(state)),
-        coerce
-      );
-    }
-  }
-
   record Struct(
     @NotNull QName name,
     @NotNull ImmutableSeq<SerTerm.SerParam> telescope,
-    int resultLift,
-    @NotNull ImmutableSeq<Field> fields
+    int resultLift
   ) implements SerDef {
     @Override public @NotNull Def de(SerTerm.@NotNull DeState state) {
       return new StructDef(
         state.newDef(name),
         telescope.map(tele -> tele.de(state)),
-        resultLift,
-        fields.map(field -> field.de(state))
+        resultLift
       );
     }
   }

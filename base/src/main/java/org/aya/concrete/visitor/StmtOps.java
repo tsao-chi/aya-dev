@@ -59,7 +59,6 @@ public interface StmtOps<P> extends Stmt.Visitor<P, Unit> {
 
   @Override default Unit visitStruct(@NotNull Decl.StructDecl decl, P p) {
     visitDecl(decl, p);
-    decl.fields.forEach(field -> traced(field, p, this::visitField));
     return Unit.unit();
   }
 
@@ -93,13 +92,6 @@ public interface StmtOps<P> extends Stmt.Visitor<P, Unit> {
     visitSignatured(ctor, p);
     ctor.patterns = ctor.patterns.map(pat -> visitPattern(pat, p));
     ctor.clauses = ctor.clauses.map(clause -> visitClause(clause, p));
-    return Unit.unit();
-  }
-  @Override default Unit visitField(Decl.@NotNull StructField field, P p) {
-    visitSignatured(field, p);
-    field.result = visitExpr(field.result, p);
-    field.clauses = field.clauses.map(clause -> visitClause(clause, p));
-    field.body = field.body.map(expr -> visitExpr(expr, p));
     return Unit.unit();
   }
 

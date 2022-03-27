@@ -84,8 +84,8 @@ public record CompiledAya(
       switch (serDef) {
         case SerDef.Data data -> data.bodies().view().zip(((DataDef) def).body).forEach(tup ->
           serOp(tup._1, tup._2));
-        case SerDef.Struct struct -> struct.fields().view().zip(((StructDef) def).fields).forEach(tup ->
-          serOp(tup._1, tup._2));
+        case SerDef.Struct struct -> throw new UnsupportedOperationException("TODO");//struct.fields().view().zip(((StructDef) def).fields).forEach(tup ->
+          //serOp(tup._1, tup._2));
         default -> {}
       }
     }
@@ -111,7 +111,6 @@ public record CompiledAya(
     return switch (def) {
       case SerDef.Fn fn -> fn.name();
       case SerDef.Struct struct -> struct.name();
-      case SerDef.Field field -> field.self();
       case SerDef.Data data -> data.name();
       case SerDef.Ctor ctor -> ctor.self();
       case SerDef.Prim prim -> new SerDef.QName(ImmutableSeq.empty(), prim.name().name());
@@ -198,6 +197,8 @@ public record CompiledAya(
         context.importModules(innerCtx.moduleName().drop(drop), Stmt.Accessibility.Public, innerCtx.exports, SourcePos.SER);
       }
       case SerDef.Struct struct -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var innerCtx = context.derive(struct.name().name());
         if (isExported(struct.name())) export(context, struct.name().name(), def.ref());
         struct.fields().view().zip(((StructDef) def).fields).forEach(tup -> {
@@ -205,6 +206,7 @@ public record CompiledAya(
           export(innerCtx, tup._1.self().name(), tup._2.ref);
         });
         context.importModules(innerCtx.moduleName().drop(drop), Stmt.Accessibility.Public, innerCtx.exports, SourcePos.SER);
+         */
       }
       case SerDef.Prim prim -> export(context, prim.name().id, def.ref());
       default -> {}

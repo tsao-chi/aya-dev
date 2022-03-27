@@ -74,6 +74,8 @@ public interface StmtResolver {
         addReferences(info, new TyckOrder.Body(decl), local._1);
       }
       case Decl.StructDecl decl -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var local = resolveDeclSignature(decl, ExprResolver.LAX);
         addReferences(info, new TyckOrder.Head(decl), local._1);
         local._1.enterBody();
@@ -93,6 +95,7 @@ public interface StmtResolver {
         });
         addReferences(info, new TyckOrder.Body(decl), local._1.reference().view()
           .concat(decl.fields.map(TyckOrder.Body::new)));
+         */
       }
       case Decl.PrimDecl decl -> {
         var resolver = resolveDeclSignature(decl, ExprResolver.RESTRICTIVE)._1;
@@ -180,8 +183,11 @@ public interface StmtResolver {
         visitBind(decl.ref, decl.bindBlock, info);
       }
       case Decl.StructDecl decl -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         decl.fields.forEach(field -> visitBind(field.ref, field.bindBlock, info));
         visitBind(decl.ref, decl.bindBlock, info);
+         */
       }
       case Decl.FnDecl decl -> visitBind(decl.ref, decl.bindBlock, info);
       case Remark remark -> {}

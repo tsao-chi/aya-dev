@@ -240,7 +240,6 @@ public abstract class BaseDistiller<Term extends AyaDocile> {
       case Decl.DataDecl d -> DATA_CALL;
       case Decl.DataCtor d -> CON_CALL;
       case Decl.StructDecl d -> STRUCT_CALL;
-      case Decl.StructField d -> FIELD_CALL;
       case Decl.PrimDecl d -> FN_CALL;
       case null, default -> null;
     };

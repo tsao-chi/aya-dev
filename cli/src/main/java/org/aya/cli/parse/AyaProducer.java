@@ -589,6 +589,8 @@ public record AyaProducer(
   }
 
   public @NotNull Tuple2<Decl, ImmutableSeq<Stmt>> visitStructDecl(AyaParser.StructDeclContext ctx, Stmt.Accessibility accessibility) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     var personality = visitSampleModifiers(ctx.sampleModifiers());
     var bind = ctx.bindBlock();
     var openAccessibility = ctx.PUBLIC() != null ? Stmt.Accessibility.Public : Stmt.Accessibility.Private;
@@ -616,8 +618,10 @@ public record AyaProducer(
         personality == Decl.Personality.EXAMPLE
       )
     ));
+     */
   }
 
+  /*
   private ImmutableSeq<Decl.StructField> visitFields(List<AyaParser.FieldContext> field) {
     return ImmutableSeq.from(field).map(fieldCtx -> {
       if (fieldCtx instanceof AyaParser.FieldDeclContext fieldDecl) return visitFieldDecl(fieldDecl);
@@ -661,6 +665,7 @@ public record AyaProducer(
       bind == null ? BindBlock.EMPTY : visitBind(bind)
     );
   }
+   */
 
   public @NotNull Expr visitType(@NotNull AyaParser.TypeContext ctx) {
     return visitExpr(ctx.expr());

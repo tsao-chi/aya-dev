@@ -162,7 +162,6 @@ public record AyaSccTycker(
     switch (stmt) {
       case Decl decl -> tycker.tyckHeader(decl, reuse(decl));
       case Decl.DataCtor ctor -> tycker.tyckHeader(ctor, reuse(ctor.dataRef.concrete));
-      case Decl.StructField field -> tycker.tyckHeader(field, reuse(field.structRef.concrete));
       default -> {}
     }
     if (reporter.anyError()) throw new SCCTyckingFailed(ImmutableSeq.of(order));
@@ -172,7 +171,6 @@ public record AyaSccTycker(
     switch (stmt) {
       case Decl decl -> decideTyckResult(decl, tycker.tyck(decl, reuse(decl)));
       case Decl.DataCtor ctor -> tycker.tyck(ctor, reuse(ctor.dataRef.concrete));
-      case Decl.StructField field -> tycker.tyck(field, reuse(field.structRef.concrete));
       case Remark remark -> Option.of(remark.literate).forEach(l -> l.tyck(newExprTycker()));
       default -> {}
     }

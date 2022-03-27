@@ -49,7 +49,6 @@ public interface DefConsumer<P> extends Def.Visitor<P, Unit>, TermConsumer<P> {
 
   @Override default Unit visitStruct(@NotNull StructDef def, P p) {
     visitDef(def, p);
-    def.fields.forEach(field -> field.accept(this, p));
     return Unit.unit();
   }
 
@@ -58,14 +57,6 @@ public interface DefConsumer<P> extends Def.Visitor<P, Unit>, TermConsumer<P> {
     tele(def.selfTele, p);
     def.result.accept(this, p);
     def.clauses.forEach(m -> visitMatching(m, p));
-    return Unit.unit();
-  }
-
-  @Override default Unit visitField(@NotNull FieldDef def, P p) {
-    tele(def.selfTele, p);
-    def.result.accept(this, p);
-    def.clauses.forEach(m -> visitMatching(m, p));
-    def.body.forEach(body -> body.accept(this, p));
     return Unit.unit();
   }
 

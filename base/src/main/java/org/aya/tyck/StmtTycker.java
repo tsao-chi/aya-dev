@@ -105,9 +105,12 @@ public record StmtTycker(
       }
       case Decl.PrimDecl decl -> decl.ref.core;
       case Decl.StructDecl decl -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         assert signature != null;
         var body = decl.fields.map(field -> traced(field, tycker, this::tyck));
         yield new StructDef(decl.ref, signature.param(), decl.ulift, body);
+         */
       }
     };
   }
@@ -247,36 +250,6 @@ public record StmtTycker(
     Conquer.against(elabClauses.matchings(), true, tycker, pos, signature);
     tycker.solveMetas();
     tracing(TreeBuilder::reduce);
-  }
-
-  public void tyckHeader(Decl.@NotNull StructField field, ExprTycker tycker) {
-    if (field.signature != null) return;
-    var structRef = field.structRef;
-    var structSig = structRef.concrete.signature;
-    assert structSig != null;
-    var structLvl = structRef.concrete.ulift;
-    var tele = tele(tycker, field.telescope, structLvl);
-    var result = tycker.zonk(tycker.inherit(field.result, new FormTerm.Univ(structLvl))).wellTyped();
-    field.signature = new Def.Signature(tele, result);
-  }
-
-  @NotNull public FieldDef tyck(Decl.@NotNull StructField field, ExprTycker tycker) {
-    // TODO[ice]: remove this hack
-    if (field.ref.core != null) return field.ref.core;
-    var structRef = field.structRef;
-    var structSig = structRef.concrete.signature;
-    assert structSig != null;
-    if (field.signature == null) tyckHeader(field, tycker);
-    var signature = field.signature;
-    var tele = signature.param();
-    var result = signature.result();
-    var patTycker = new PatTycker(tycker);
-    var clauses = patTycker.elabClausesDirectly(field.clauses, field.signature);
-    var body = field.body.map(e -> tycker.inherit(e, result).wellTyped());
-    var elaborated = new FieldDef(structRef, field.ref, structSig.param(), tele, result, clauses.matchings(), body, field.coerce);
-    if (patTycker.noError())
-      ensureConfluent(tycker, field.signature, clauses, field.sourcePos, false);
-    return elaborated;
   }
 
   /**

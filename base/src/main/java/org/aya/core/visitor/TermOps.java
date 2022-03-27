@@ -64,7 +64,6 @@ public interface TermOps extends TermView {
     @Override public @NotNull Term post(@NotNull Term term) {
       return switch (view.post(term)) {
         case RefTerm ref -> subst.map().getOption(ref.var()).map(Term::rename).getOrDefault(ref);
-        case RefTerm.Field field -> subst.map().getOption(field.ref()).map(Term::rename).getOrDefault(field);
         case Term misc -> misc;
       };
     }
@@ -95,7 +94,6 @@ public interface TermOps extends TermView {
       return switch (view.post(term)) {
         case RefTerm ref -> subst.map().getOrDefault(ref.var(), ref);
         // [ice]: need to generate "replacements" for 'this' bindings as well?
-        case RefTerm.Field field -> subst.map().getOrDefault(field.ref(), field);
         case Term misc -> misc;
       };
     }
@@ -132,7 +130,9 @@ public interface TermOps extends TermView {
     public @NotNull Term post(@NotNull Term term) {
       return switch (view.post(term)) {
         case FormTerm.Univ univ -> new FormTerm.Univ(univ.lift() + ulift);
-        case CallTerm.Struct struct -> new CallTerm.Struct(struct.ref(), struct.ulift() + ulift, struct.args());
+        case CallTerm.Struct.StructRef structRef -> new CallTerm.Struct.StructRef(structRef.ref(), structRef.ulift() + ulift);
+        case CallTerm.Struct.StructCon structCon -> new CallTerm.Struct.StructCon(structCon.struct(), structCon.ulift() + ulift, structCon.args());
+        case CallTerm.Struct.StructFill structFill -> new CallTerm.Struct.StructFill(structFill.struct(), structFill.ulift() + ulift, structFill.params());
         case CallTerm.Data data -> new CallTerm.Data(data.ref(), data.ulift() + ulift, data.args());
         case CallTerm.Con con -> {
           var head = con.head();
@@ -144,8 +144,6 @@ public interface TermOps extends TermView {
         case CallTerm.Hole hole -> new CallTerm.Hole(hole.ref(), hole.ulift() + ulift, hole.contextArgs(), hole.args());
         case RefTerm ref -> boundVars.contains(ref.var())
           ? ref : new RefTerm(ref.var(), ref.lift() + ulift);
-        case RefTerm.Field field -> boundVars.contains(field.ref())
-          ? field : new RefTerm.Field(field.ref(), field.lift() + ulift);
         case Term misc -> misc;
       };
     }
@@ -221,6 +219,8 @@ public interface TermOps extends TermView {
           );
         }
         case CallTerm.Access access -> {
+          throw new UnsupportedOperationException("TODO");
+          /*
           var fieldDef = access.ref().core;
           if (access.of() instanceof IntroTerm.New n) {
             var fieldBody = access.fieldArgs().foldLeft(n.params().get(access.ref()), CallTerm::make);
@@ -236,6 +236,7 @@ public interface TermOps extends TermView {
             var unfolded = unfoldClauses(true, access.fieldArgs(), subst, fieldDef.clauses);
             yield unfolded != null ? unfolded.data() : access;
           }
+           */
         }
         case CallTerm.Prim prim -> state.primFactory().unfold(prim.id(), prim, state);
         case CallTerm.Hole hole -> {

@@ -69,7 +69,8 @@ public class CoreDistiller extends BaseDistiller<Term> {
               params.removeLast();
             } else break;
           }
-          if (call instanceof CallTerm.Access access) bodyDoc = visitAccessHead(access);
+          // TODO
+          if ((Object) call instanceof CallTerm.Access access) bodyDoc = visitAccessHead(access);
           else {
             var style = chooseStyle(defVar);
             bodyDoc = style != null
@@ -99,12 +100,16 @@ public class CoreDistiller extends BaseDistiller<Term> {
           options.map.get(DistillerOptions.Key.ShowImplicitArgs)
         );
       }
+      case IntroTerm.New aNew -> throw new UnsupportedOperationException();
+      // TODO
+      /*
       case IntroTerm.New newTerm -> Doc.cblock(Doc.styled(KEYWORD, "new"), 2,
         Doc.vcat(newTerm.params().view()
           .map((k, v) -> Doc.sep(Doc.symbol("|"),
             linkRef(k, FIELD_CALL),
             Doc.symbol("=>"), term(Outer.Free, v)))
           .toImmutableSeq()));
+       */
       case CallTerm.Access term -> visitCalls(false, visitAccessHead(term), term.fieldArgs().view(), outer,
         options.map.get(DistillerOptions.Key.ShowImplicitArgs));
       case RefTerm.MetaPat metaPat -> {
@@ -119,12 +124,14 @@ public class CoreDistiller extends BaseDistiller<Term> {
       case ElimTerm.App term -> {
         var args = MutableList.of(term.arg());
         var head = ElimTerm.unapp(term.of(), args);
-        if (head instanceof RefTerm.Field fieldRef) yield visitArgsCalls(fieldRef.ref(), FIELD_CALL, args, outer);
+        // TODO
+        //if (head instanceof RefTerm.Field fieldRef) yield visitArgsCalls(fieldRef.ref(), FIELD_CALL, args, outer);
         yield visitCalls(false, term(Outer.AppHead, head), args.view(), outer,
           options.map.get(DistillerOptions.Key.ShowImplicitArgs));
       }
       case CallTerm.Prim prim -> visitArgsCalls(prim.ref(), FN_CALL, prim.args(), outer);
-      case RefTerm.Field term -> linkRef(term.ref(), FIELD_CALL);
+      // TODO
+      //case RefTerm.Field term -> linkRef(term.ref(), FIELD_CALL);
       case ElimTerm.Proj term -> Doc.cat(term(Outer.ProjHead, term.of()), Doc.symbol("."), Doc.plain(String.valueOf(term.ix())));
       case FormTerm.Pi term -> {
         if (!options.map.get(DistillerOptions.Key.ShowImplicitPats) && !term.param().explicit()) {
@@ -165,13 +172,17 @@ public class CoreDistiller extends BaseDistiller<Term> {
 
   private ImmutableSeq<Arg<Term>> visibleArgsOf(CallTerm call) {
     return call instanceof CallTerm.Con con
-      ? con.conArgs() : call instanceof CallTerm.Access access
-      ? access.fieldArgs() : call.args();
+      ? con.conArgs() : /*call instanceof CallTerm.Access access // TODO
+      ? access.fieldArgs() :*/ call.args();
   }
 
   private @NotNull Doc visitAccessHead(CallTerm.@NotNull Access term) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     return Doc.cat(term(Outer.ProjHead, term.of()), Doc.symbol("."),
       linkRef(term.ref(), FIELD_CALL));
+
+     */
   }
 
   public @NotNull Doc pat(@NotNull Pat pat, Outer outer) {
@@ -208,12 +219,6 @@ public class CoreDistiller extends BaseDistiller<Term> {
           term -> Doc.sep(Doc.sepNonEmpty(line1), Doc.symbol("=>"), term(Outer.Free, term)),
           clauses -> Doc.vcat(Doc.sepNonEmpty(line1), Doc.nest(2, visitClauses(clauses))));
       }
-      case FieldDef field -> Doc.cblock(Doc.sepNonEmpty(Doc.symbol("|"),
-        coe(field.coerce),
-        linkDef(field.ref(), FIELD_CALL),
-        visitTele(field.selfTele),
-        Doc.symbol(":"),
-        term(Outer.Free, field.result)), 2, visitClauses(field.clauses));
       case PrimDef def -> primDoc(def.ref());
       case CtorDef ctor -> {
         var doc = Doc.sepNonEmpty(coe(ctor.coerce),
@@ -231,7 +236,7 @@ public class CoreDistiller extends BaseDistiller<Term> {
         visitTele(def.telescope()),
         Doc.symbol(":"),
         term(Outer.Free, def.result())
-      ), Doc.nest(2, Doc.vcat(def.fields.view().map(this::def))));
+      ), Doc.empty()/*Doc.nest(2, Doc.vcat(def.fields.view().map(this::def)))*/);//TODO
       case DataDef def -> {
         var line1 = MutableList.of(Doc.styled(KEYWORD, "data"),
           linkDef(def.ref(), DATA_CALL),

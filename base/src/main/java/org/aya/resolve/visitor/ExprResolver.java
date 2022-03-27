@@ -16,7 +16,6 @@ import org.aya.ref.DefVar;
 import org.aya.ref.Var;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.GeneralizedNotAvailableError;
-import org.aya.tyck.error.FieldProblem;
 import org.aya.tyck.order.TyckOrder;
 import org.aya.tyck.order.TyckUnit;
 import org.aya.util.error.SourcePos;
@@ -71,6 +70,8 @@ public record ExprResolver(
       case Expr.BinOpSeq binOpSeq -> new Expr.BinOpSeq(binOpSeq.sourcePos(),
         binOpSeq.seq().map(e -> new Expr.NamedArg(e.explicit(), e.name(), resolve(e.expr(), ctx))));
       case Expr.ProjExpr proj -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var tup = resolve(proj.tup(), ctx);
         if (proj.ix().isLeft())
           yield new Expr.ProjExpr(proj.sourcePos(), tup, proj.ix(), proj.resolvedIx(), proj.theCore());
@@ -78,6 +79,7 @@ public record ExprResolver(
         var resolvedIx = ctx.getMaybe(projName);
         if (resolvedIx == null) ctx.reportAndThrow(new FieldProblem.UnknownField(proj, projName.join()));
         yield new Expr.ProjExpr(proj.sourcePos(), tup, proj.ix(), resolvedIx, proj.theCore());
+         */
       }
       case Expr.LamExpr lam -> {
         var param = resolveParam(lam.param(), ctx);

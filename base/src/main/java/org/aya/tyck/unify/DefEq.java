@@ -6,7 +6,6 @@ import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.mutable.MutableHashMap;
 import kala.collection.mutable.MutableMap;
-import kala.tuple.Tuple2;
 import org.aya.core.Meta;
 import org.aya.core.def.CtorDef;
 import org.aya.core.def.Def;
@@ -18,7 +17,6 @@ import org.aya.generic.Arg;
 import org.aya.generic.util.InternalException;
 import org.aya.generic.util.NormalizeMode;
 import org.aya.ref.DefVar;
-import org.aya.ref.LocalVar;
 import org.aya.ref.Var;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.env.LocalCtx;
@@ -245,6 +243,8 @@ public final class DefEq {
     var ret = switch (type) {
       default -> compareUntyped(lhs, rhs, lr, rl) != null;
       case CallTerm.Struct type1 -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var fieldSigs = type1.ref().core.fields;
         var paramSubst = type1.ref().core.telescope().view().zip(type1.args().view()).map(x ->
           Tuple2.of(x._1.ref(), x._2.term())).<Var, Term>toImmutableMap();
@@ -260,6 +260,7 @@ public final class DefEq {
           if (!compare(l, r, lr, rl, fieldSig.result().subst(paramSubst).subst(fieldSubst))) yield false;
         }
         yield true;
+         */
       }
       case IntroTerm.Lambda $ -> throw new InternalException("LamTerm is never type");
       case CallTerm.Con $ -> throw new InternalException("ConCall is never type");
@@ -375,11 +376,14 @@ public final class DefEq {
       }
       case CallTerm.Prim lhs -> null;
       case CallTerm.Access lhs -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         if (!(preRhs instanceof CallTerm.Access rhs)) yield null;
         var preStructType = compareUntyped(lhs.of(), rhs.of(), lr, rl);
-        if (!(preStructType instanceof CallTerm.Struct structType)) yield null;
+        if (!(preStructType instanceof CallTerm.StructCall structType)) yield null;
         if (lhs.ref() != rhs.ref()) yield null;
         yield Def.defResult(lhs.ref());
+         */
       }
       case CallTerm.Hole lhs -> solveMeta(preRhs, lr, rl, lhs);
     };

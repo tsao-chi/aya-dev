@@ -7,7 +7,6 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableHashMap;
 import kala.collection.mutable.MutableMap;
-import kala.tuple.Tuple;
 import org.aya.concrete.stmt.Signatured;
 import org.aya.core.def.Def;
 import org.aya.core.def.PrimDef;
@@ -115,8 +114,11 @@ public sealed interface SerTerm extends Serializable {
 
   record New(@NotNull StructCall call, @NotNull ImmutableMap<SerDef.QName, SerTerm> map) implements SerTerm {
     @Override public @NotNull Term de(@NotNull DeState state) {
+      throw new UnsupportedOperationException("TODO");
+      /*
       return new IntroTerm.New(call.de(state), ImmutableMap.from(map.view().map((k, v) ->
         Tuple.of(state.resolve(k), v.de(state)))));
+       */
     }
   }
 
@@ -149,7 +151,7 @@ public sealed interface SerTerm extends Serializable {
 
   record StructCall(@NotNull SerDef.QName name, @NotNull CallData data) implements SerTerm {
     @Override public @NotNull CallTerm.Struct de(@NotNull DeState state) {
-      return new CallTerm.Struct(state.resolve(name), data.ulift, data.de(state));
+      return CallTerm.Struct.create(state.resolve(name), data.ulift, data.de(state));
     }
   }
 
@@ -196,16 +198,22 @@ public sealed interface SerTerm extends Serializable {
     @NotNull ImmutableSeq<@NotNull SerArg> fieldArgs
   ) implements SerTerm {
     @Override public @NotNull Term de(@NotNull DeState state) {
+      throw new UnsupportedOperationException("TODO");
+      /*
       return new CallTerm.Access(
         of.de(state), state.resolve(ref),
         structArgs.map(arg -> arg.de(state)),
         fieldArgs.map(arg -> arg.de(state)));
+      */
     }
   }
 
   record FieldRef(@NotNull SerDef.QName name, int ulift) implements SerTerm {
     @Override public @NotNull Term de(@NotNull DeState state) {
+      throw new UnsupportedOperationException("TODO");
+      /*
       return new RefTerm.Field(state.resolve(name), ulift);
+      */
     }
   }
 }

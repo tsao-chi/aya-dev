@@ -2,8 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.visitor;
 
-import kala.collection.immutable.ImmutableMap;
-import kala.tuple.Tuple;
 import org.aya.core.term.*;
 import org.aya.generic.Arg;
 import org.aya.tyck.TyckState;
@@ -75,10 +73,13 @@ public interface TermView {
         yield new IntroTerm.Tuple(items);
       }
       case IntroTerm.New neu -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var struct = commit(neu.struct());
         var fields = ImmutableMap.from(neu.params().view().map((k, v) -> Tuple.of(k, commit(v))));
         if (struct == neu.struct() && fields.valuesView().sameElements(neu.params().valuesView())) yield neu;
         yield new IntroTerm.New((CallTerm.Struct) struct, fields);
+         */
       }
       case ElimTerm.App app -> {
         var function = commit(app.of());
@@ -94,7 +95,7 @@ public interface TermView {
       case CallTerm.Struct struct -> {
         var args = struct.args().map(this::commit);
         if (args.sameElements(struct.args(), true)) yield struct;
-        yield new CallTerm.Struct(struct.ref(), struct.ulift(), args);
+        yield CallTerm.Struct.create(struct.ref(), struct.ulift(), args);
       }
       case CallTerm.Data data -> {
         var args = data.args().map(this::commit);
@@ -133,7 +134,6 @@ public interface TermView {
         if (contextArgs.sameElements(hole.contextArgs(), true) && args.sameElements(hole.args(), true)) yield hole;
         yield new CallTerm.Hole(hole.ref(), hole.ulift(), contextArgs, args);
       }
-      case RefTerm.Field field -> field;
       case RefTerm ref -> ref;
       case RefTerm.MetaPat metaPat -> metaPat;
       case ErrorTerm error -> error;

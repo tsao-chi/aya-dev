@@ -70,7 +70,7 @@ public interface Resolver {
   private static @NotNull SeqView<Def> withSubLevel(@NotNull Def def) {
     return switch (def) {
       case DataDef data -> SeqView.<Def>of(data).appendedAll(data.body);
-      case StructDef struct -> SeqView.<Def>of(struct).appendedAll(struct.fields);
+      case StructDef struct -> throw new UnsupportedOperationException();// SeqView.<Def>of(struct).appendedAll(struct.fields);//TODO
       default -> SeqView.of(def);
     };
   }
@@ -181,11 +181,6 @@ public interface Resolver {
     @Override public Unit visitCtor(@NotNull Decl.DataCtor ctor, XY xy) {
       check(xy, ctor.ref(), ctor.sourcePos());
       return super.visitCtor(ctor, xy);
-    }
-
-    @Override public Unit visitField(@NotNull Decl.StructField field, XY xy) {
-      check(xy, field.ref(), field.sourcePos());
-      return super.visitField(field, xy);
     }
 
     @Override public Unit visitNew(@NotNull Expr.NewExpr expr, XY xy) {

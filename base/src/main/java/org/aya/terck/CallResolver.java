@@ -116,8 +116,11 @@ public record CallResolver(
   }
 
   @Override public Unit visitAccess(CallTerm.@NotNull Access term, CallGraph<Def, Term.Param> defCallGraph) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     resolveCall(term, defCallGraph);
     return DefConsumer.super.visitAccess(term, defCallGraph);
+     */
   }
 
   @Override public Unit visitPrimCall(@NotNull CallTerm.Prim prim, CallGraph<Def, Term.Param> graph) {

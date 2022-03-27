@@ -22,11 +22,7 @@ public interface TermConsumer<P> extends Term.Visitor<P, Unit> {
     return Unit.unit();
   }
 
-  @Override default Unit visitFieldRef(@NotNull RefTerm.Field term, P p) {
-    return Unit.unit();
-  }
-
-  @Override default Unit visitLam(@NotNull IntroTerm.Lambda term, P p) {
+    @Override default Unit visitLam(@NotNull IntroTerm.Lambda term, P p) {
     term.param().type().accept(this, p);
     return term.body().accept(this, p);
   }
@@ -100,9 +96,12 @@ public interface TermConsumer<P> extends Term.Visitor<P, Unit> {
   }
 
   @Override default Unit visitNew(@NotNull IntroTerm.New newTerm, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     newTerm.struct().accept(this, p);
     newTerm.params().forEach((k, v) -> v.accept(this, p));
     return Unit.unit();
+     */
   }
 
   @Override default Unit visitError(@NotNull ErrorTerm term, P p) {
@@ -118,8 +117,11 @@ public interface TermConsumer<P> extends Term.Visitor<P, Unit> {
   }
 
   @Override default Unit visitAccess(@NotNull CallTerm.Access term, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     visitArgs(p, term.fieldArgs());
     visitCall(term, p);
     return term.of().accept(this, p);
+     */
   }
 }

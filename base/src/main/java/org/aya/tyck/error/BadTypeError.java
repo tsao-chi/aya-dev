@@ -5,7 +5,6 @@ package org.aya.tyck.error;
 import kala.control.Either;
 import org.aya.concrete.Expr;
 import org.aya.concrete.stmt.QualifiedID;
-import org.aya.core.def.FieldDef;
 import org.aya.core.term.Term;
 import org.aya.generic.ExprProblem;
 import org.aya.generic.util.NormalizeMode;
@@ -39,6 +38,8 @@ public record BadTypeError(
   }
 
   @Override public @NotNull Doc hint(@NotNull DistillerOptions options) {
+    // TODO: implement
+    /*
     if (expr instanceof Expr.AppExpr app && app.function() instanceof Expr.RefExpr ref
       && ref.resolvedVar() instanceof DefVar<?, ?> defVar && defVar.core instanceof FieldDef) {
       var fix = new Expr.ProjExpr(SourcePos.NONE, app.argument().expr(),
@@ -47,6 +48,7 @@ public record BadTypeError(
         Doc.styled(Style.code(), fix.toDoc(options)),
         Doc.english("?"));
     }
+     */
     return Doc.empty();
   }
 

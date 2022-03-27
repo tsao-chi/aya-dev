@@ -110,9 +110,12 @@ public record StmtShallowResolver(
         resolveOpInfo(decl, innerCtx);
       }
       case Decl.StructDecl decl -> {
+        throw new UnsupportedOperationException("TODO");
+        /*
         var ctx = resolveDecl(decl, context);
         var innerCtx = resolveChildren(decl, ctx, s -> s.fields.view(), this::resolveField);
         resolveOpInfo(decl, innerCtx);
+         */
       }
       case Decl.FnDecl decl -> {
         var ctx = resolveDecl(decl, context);
@@ -189,11 +192,5 @@ public record StmtShallowResolver(
     ctor.ref().module = context.moduleName();
     context.addGlobalSimple(Stmt.Accessibility.Public, ctor.ref, ctor.sourcePos);
     resolveOpInfo(ctor, context);
-  }
-
-  private void resolveField(@NotNull Decl.StructField field, @NotNull ModuleContext context) {
-    field.ref().module = context.moduleName();
-    context.addGlobalSimple(Stmt.Accessibility.Public, field.ref, field.sourcePos);
-    resolveOpInfo(field, context);
   }
 }

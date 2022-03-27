@@ -2,10 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.core.serde;
 
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
-import kala.tuple.Tuple;
 import kala.tuple.Unit;
 import org.aya.core.Matching;
 import org.aya.core.def.*;
@@ -89,12 +87,7 @@ public record Serializer(@NotNull Serializer.State state) implements
     throw new AssertionError("Shall not have holes serialized.");
   }
 
-  @Override
-  public SerTerm visitFieldRef(@NotNull RefTerm.Field term, Unit unit) {
-    return new SerTerm.FieldRef(state.def(term.ref()), term.lift());
-  }
-
-  @Override public SerTerm visitRef(@NotNull RefTerm term, Unit unit) {
+    @Override public SerTerm visitRef(@NotNull RefTerm term, Unit unit) {
     return new SerTerm.Ref(state.local(term.var()), term.lift());
   }
 
@@ -167,8 +160,11 @@ public record Serializer(@NotNull Serializer.State state) implements
   }
 
   @Override public SerTerm visitNew(IntroTerm.@NotNull New newTerm, Unit unit) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     return new SerTerm.New(visitStructCall(newTerm.struct(), unit), ImmutableMap.from(newTerm.params().view().map((k, v) ->
       Tuple.of(state.def(k), serialize(v)))));
+     */
   }
 
   @Override public SerTerm visitProj(ElimTerm.@NotNull Proj term, Unit unit) {
@@ -176,11 +172,14 @@ public record Serializer(@NotNull Serializer.State state) implements
   }
 
   @Override public SerTerm visitAccess(CallTerm.@NotNull Access term, Unit unit) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     return new SerTerm.Access(
       serialize(term.of()), state.def(term.ref()),
       serializeArgs(term.structArgs()),
       serializeArgs(term.fieldArgs())
     );
+     */
   }
 
   @Override public SerDef visitFn(@NotNull FnDef def, Unit unit) {
@@ -215,21 +214,7 @@ public record Serializer(@NotNull Serializer.State state) implements
     return new SerDef.Struct(
       state.def(def.ref()),
       serializeParams(def.telescope),
-      def.resultLevel,
-      def.fields.map(field -> visitField(field, Unit.unit()))
-    );
-  }
-
-  @Override public SerDef.Field visitField(@NotNull FieldDef def, Unit unit) {
-    return new SerDef.Field(
-      state.def(def.structRef),
-      state.def(def.ref),
-      serializeParams(def.ownerTele),
-      serializeParams(def.selfTele),
-      serialize(def.result),
-      def.clauses.map(this::serialize),
-      def.body.map(this::serialize),
-      def.coerce
+      def.resultLevel
     );
   }
 

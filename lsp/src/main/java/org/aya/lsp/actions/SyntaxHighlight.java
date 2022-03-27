@@ -43,12 +43,6 @@ public final class SyntaxHighlight implements StmtConsumer<@NotNull MutableList<
     return StmtConsumer.super.visitStruct(decl, buffer);
   }
 
-  @Override
-  public Unit visitField(@NotNull Decl.StructField field, @NotNull MutableList<HighlightResult.Symbol> buffer) {
-    buffer.append(new HighlightResult.Symbol(rangeOf(field), HighlightResult.Symbol.Kind.FieldDef));
-    return StmtConsumer.super.visitField(field, buffer);
-  }
-
   @Override public Unit visitFn(@NotNull Decl.FnDecl decl, @NotNull MutableList<HighlightResult.Symbol> buffer) {
     buffer.append(new HighlightResult.Symbol(rangeOf(decl), HighlightResult.Symbol.Kind.FnDef));
     visitBind(buffer, decl.bindBlock);
@@ -139,8 +133,6 @@ public final class SyntaxHighlight implements StmtConsumer<@NotNull MutableList<
       return HighlightResult.Symbol.Kind.FnCall;
     else if (ref.core instanceof StructDef || ref.concrete instanceof Decl.StructDecl)
       return HighlightResult.Symbol.Kind.StructCall;
-    else if (ref.core instanceof FieldDef || ref.concrete instanceof Decl.StructField)
-      return HighlightResult.Symbol.Kind.FieldCall;
     else if (ref.core instanceof PrimDef || ref.concrete instanceof Decl.PrimDecl)
       return HighlightResult.Symbol.Kind.PrimCall;
     else if (ref.core instanceof DataDef || ref.concrete instanceof Decl.DataDecl)

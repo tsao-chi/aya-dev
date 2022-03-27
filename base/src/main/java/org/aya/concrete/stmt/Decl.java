@@ -96,7 +96,6 @@ public sealed abstract class Decl extends Signatured implements Stmt {
     }
 
     @ApiStatus.OverrideOnly R visitCtor(Decl.@NotNull DataCtor ctor, P p);
-    @ApiStatus.OverrideOnly R visitField(Decl.@NotNull StructField field, P p);
     R visitData(Decl.@NotNull DataDecl decl, P p);
     R visitStruct(Decl.@NotNull StructDecl decl, P p);
     R visitFn(Decl.@NotNull FnDecl decl, P p);
@@ -217,8 +216,6 @@ public sealed abstract class Decl extends Signatured implements Stmt {
    */
   public static final class StructDecl extends Decl {
     public final @NotNull DefVar<StructDef, StructDecl> ref;
-    public @NotNull
-    final ImmutableSeq<StructField> fields;
     public int ulift;
 
     public StructDecl(
@@ -229,14 +226,11 @@ public sealed abstract class Decl extends Signatured implements Stmt {
       @NotNull ImmutableSeq<Expr.Param> telescope,
       @NotNull Expr result,
       // @NotNull ImmutableSeq<String> superClassNames,
-      @NotNull ImmutableSeq<StructField> fields,
       @NotNull BindBlock bindBlock,
       @NotNull Decl.Personality personality
     ) {
       super(sourcePos, entireSourcePos, accessibility, opInfo, bindBlock, telescope, result, personality);
-      this.fields = fields;
       this.ref = DefVar.concrete(this, name);
-      fields.forEach(field -> field.structRef = ref);
     }
 
     @Override public @NotNull DefVar<StructDef, StructDecl> ref() {
@@ -245,39 +239,6 @@ public sealed abstract class Decl extends Signatured implements Stmt {
 
     @Override protected <P, R> R doAccept(Decl.@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitStruct(this, p);
-    }
-  }
-
-  public static final class StructField extends Signatured {
-    public final @NotNull DefVar<FieldDef, Decl.StructField> ref;
-    public DefVar<StructDef, StructDecl> structRef;
-    public @NotNull ImmutableSeq<Pattern.Clause> clauses;
-    public @NotNull Expr result;
-    public @NotNull Option<Expr> body;
-
-    public final boolean coerce;
-
-    public StructField(
-      @NotNull SourcePos sourcePos, @NotNull SourcePos entireSourcePos,
-      @Nullable OpInfo opInfo,
-      @NotNull String name,
-      @NotNull ImmutableSeq<Expr.Param> telescope,
-      @NotNull Expr result,
-      @NotNull Option<Expr> body,
-      @NotNull ImmutableSeq<Pattern.Clause> clauses,
-      boolean coerce,
-      @NotNull BindBlock bindBlock
-    ) {
-      super(sourcePos, entireSourcePos, opInfo, bindBlock, telescope);
-      this.coerce = coerce;
-      this.result = result;
-      this.clauses = clauses;
-      this.body = body;
-      this.ref = DefVar.concrete(this, name);
-    }
-
-    @Override public @NotNull DefVar<FieldDef, StructField> ref() {
-      return ref;
     }
   }
 

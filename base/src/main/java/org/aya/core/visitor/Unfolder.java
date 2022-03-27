@@ -126,6 +126,8 @@ public interface Unfolder<P> extends TermFixpoint<P> {
   }
 
   default @NotNull Term visitAccess(CallTerm.@NotNull Access term, P p) {
+    throw new UnsupportedOperationException("TODO");
+    /*
     var nevv = term.of().accept(this, p);
     var fieldRef = term.ref();
     var fieldDef = fieldRef.core;
@@ -149,6 +151,7 @@ public interface Unfolder<P> extends TermFixpoint<P> {
     var arguments = buildSubst(fieldDef.ownerTele, term.structArgs());
     var fieldBody = term.fieldArgs().foldLeft(n.params().get(fieldRef), CallTerm::make);
     return fieldBody.subst(arguments).accept(this, p);
+     */
   }
 
   /**

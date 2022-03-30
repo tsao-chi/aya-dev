@@ -14,6 +14,7 @@ module org.aya {
   exports org.aya.concrete.stmt;
   exports org.aya.concrete.visitor;
   exports org.aya.concrete;
+  exports org.aya.core.cubical;
   exports org.aya.core.def;
   exports org.aya.core.ops;
   exports org.aya.core.pat;

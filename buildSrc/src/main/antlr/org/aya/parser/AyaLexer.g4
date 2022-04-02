@@ -5,6 +5,9 @@ lexer grammar AyaLexer;
 
 // ---- AyaLexer begin: Keywords
 
+// naming convention: add `_KW` suffix to avoid conflict
+//  with a potential rule name when needed.
+
 // associativities
 INFIX  : 'infix';
 INFIXL : 'infixl';
@@ -22,9 +25,7 @@ COUNTEREXAMPLE : 'counterexample';
 ULIFT : 'ulift' | '\u2191';
 TYPE : 'Type';
 
-// other keywords
-// principal: add `_KW` suffix to avoid conflict with a potential rule name.
-// if it seems impossible, then forget about it.
+// module system
 AS : 'as';
 OPEN : 'open';
 IMPORT : 'import';
@@ -32,20 +33,26 @@ PUBLIC : 'public';
 PRIVATE : 'private';
 USING : 'using';
 HIDING : 'hiding';
+MODULE_KW : 'module';
+
+// modifiers
 COERCE : 'coerce';
 OPAQUE : 'opaque';
 INLINE : 'inline';
 OVERLAP : 'overlap';
-MODULE_KW : 'module';
+
+// declarations
 BIND_KW : 'bind';
-MATCH : 'match';
-// ABSURD : 'impossible';
 VARIABLE : 'variable';
 DEF : 'def';
 STRUCT : 'struct';
 DATA : 'data';
 PRIM : 'prim';
 EXTENDS : 'extends';
+BOUNDARIES_KW : 'boundaries';
+
+// other keywords
+MATCH : 'match';
 NEW_KW : 'new';
 PATTERN_KW : 'pattern';
 

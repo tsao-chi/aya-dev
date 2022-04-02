@@ -67,8 +67,8 @@ structDecl : sampleModifiers? (PUBLIC? OPEN)? STRUCT declNameOrInfix tele* type?
 
 primDecl : PRIM weakId tele* type? ;
 
-field : COERCE? declNameOrInfix tele* type clauses? bindBlock? # fieldDecl
-      | declNameOrInfix tele* type? IMPLIES expr    bindBlock? # fieldImpl
+field : COERCE? declNameOrInfix tele* type bindBlock?       # fieldDecl
+      | declNameOrInfix tele* type? IMPLIES expr bindBlock? # fieldImpl
       ;
 
 dataDecl : sampleModifiers? (PUBLIC? OPEN)? DATA declNameOrInfix tele* type? dataBody* bindBlock?;
@@ -77,7 +77,7 @@ dataBody : (BAR dataCtor)       # dataCtors
          | dataCtorClause       # dataClauses
          ;
 
-dataCtor : COERCE? declNameOrInfix tele* clauses? bindBlock?;
+dataCtor : COERCE? declNameOrInfix tele* bindBlock?;
 
 dataCtorClause : BAR patterns IMPLIES dataCtor;
 
@@ -97,6 +97,9 @@ expr : atom                                 # single
 newArg : BAR weakId ids IMPLIES expr;
 // New body new body but you!
 newBody : LBRACE newArg* RBRACE;
+
+// boundaries
+boundaries : BOUNDARIES_KW idsComma LBRACE clauses RBRACE;
 
 // ulift is written here because we want `x ulift + y` to work
 atom : ULIFT* literal

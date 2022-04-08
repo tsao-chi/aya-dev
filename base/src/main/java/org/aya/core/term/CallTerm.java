@@ -3,6 +3,7 @@
 package org.aya.core.term;
 
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.concrete.stmt.Decl;
 import org.aya.concrete.stmt.Signatured;
@@ -88,19 +89,6 @@ public sealed interface CallTerm extends Term {
     }
   }
 
-  /**
-   * @author kiva
-   */
-  record Struct(
-    @NotNull DefVar<StructDef, Decl.StructDecl> ref,
-    int ulift,
-    @NotNull ImmutableSeq<Arg<@NotNull Term>> args
-  ) implements CallTerm {
-    @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
-      return visitor.visitStructCall(this, p);
-    }
-  }
-
   record ConHead(
     @NotNull DefVar<DataDef, Decl.DataDecl> dataRef,
     @NotNull DefVar<CtorDef, Decl.DataCtor> ref,
@@ -170,16 +158,72 @@ public sealed interface CallTerm extends Term {
    */
   record Access(
     @NotNull Term of,
-    @NotNull DefVar<FieldDef, Decl.StructField> ref,
+    @NotNull Term.Param ref,
     @NotNull ImmutableSeq<@NotNull Arg<@NotNull Term>> structArgs,
     @NotNull ImmutableSeq<@NotNull Arg<@NotNull Term>> fieldArgs
-  ) implements CallTerm {
+  ) implements Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitAccess(this, p);
     }
+  }
 
-    @Override public @NotNull ImmutableSeq<@NotNull Arg<Term>> args() {
-      return structArgs.concat(fieldArgs);
+  /**
+   * @author zaoqi
+   */
+  sealed interface Struct extends CallTerm {
+    @Override default <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
+      return visitor.visitStructCall(this, p);
+    }
+    static @NotNull CallTerm.Struct create(
+      @NotNull DefVar<StructDef, Decl.StructDecl> ref,
+      int ulift,
+      @NotNull ImmutableSeq<Arg<@NotNull Term>> args) {
+      return new StructCon(new StructRef(ref, ulift), ulift, args);
+    }
+
+    @Override @NotNull DefVar<StructDef, Decl.StructDecl> ref();
+    int ulift();
+
+    record StructRef(
+      @NotNull DefVar<StructDef, Decl.StructDecl> ref,
+      int ulift
+    ) implements Struct {
+      @Override
+      public @NotNull ImmutableSeq<@NotNull Arg<Term>> args() {
+        return ImmutableSeq.empty();
+      }
+    }
+
+    record StructCon(
+      @NotNull CallTerm.Struct struct,
+      int ulift,
+      @NotNull ImmutableSeq<Arg<@NotNull Term>> args
+    ) implements Struct {
+      @Override
+      public @NotNull DefVar<StructDef, Decl.StructDecl> ref() {
+        return struct.ref();
+      }
+
+      @Override
+      public @NotNull ImmutableSeq<@NotNull Arg<Term>> args() {
+        return struct.args().concat(args);
+      }
+    }
+
+    record StructFill(
+      @NotNull CallTerm.Struct struct,
+      int ulift,
+      @NotNull ImmutableMap<Param, Term> params
+    ) implements Struct {
+      @Override
+      public @NotNull DefVar<StructDef, Decl.StructDecl> ref() {
+        return struct.ref();
+      }
+
+      @Override
+      public @NotNull ImmutableSeq<@NotNull Arg<Term>> args() {
+        return struct.args().concat(params.view().<@NotNull Arg<Term>>map((x, y) -> new Arg(y, x.explicit())).toImmutableSeq());
+      }
     }
   }
 }

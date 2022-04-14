@@ -1,0 +1,70 @@
+[
+  {
+    "name": "org.aya.cli.library.json.LibraryConfigData",
+    "unsafeAllocated": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "org.aya.cli.library.json.LibraryDependencyData",
+    "unsafeAllocated": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "org.aya.core.serde.CompiledAya",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "org.aya.repl.Command",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$1",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$2",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$3",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$4",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$5",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$6",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$7",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$8",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$9",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$10",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.aya.cli.repl.ReplCommands$11",
+    "allDeclaredMethods": true
+  }
+]

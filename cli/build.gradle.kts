@@ -36,6 +36,14 @@ if (isMac) tasks.withType<JavaExec>().configureEach {
 
 tasks.withType<JavaCompile>().configureEach { CommonTasks.picocli(this) }
 
+val genDir = file("build/native-config")
+val configFile = file("reflect-config.txt")
+
+val generateReflectionConfig = tasks.register<org.aya.gradle.GenerateReflectionConfigTask>("generateReflectionConfig") {
+  outputDir = genDir
+  inputFile = configFile
+}
+
 graalvmNative {
   binaries {
     named("main") {
@@ -43,8 +51,9 @@ graalvmNative {
       mainClass.set("org.aya.cli.Main")
       verbose.set(true)
       fallback.set(false)
+      debug.set(System.getenv("CI") == null)
       sharedLibrary.set(false)
-      configurationFileDirectories.from(file("../gradle/native-image"))
+      configurationFileDirectories.from(genDir)
       useFatJar.set(true)
     }
   }
@@ -58,5 +67,6 @@ graalvmNative {
 }
 
 tasks.named<org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask>("nativeCompile") {
+  dependsOn(generateReflectionConfig)
   classpathJar.set(file("build/libs/cli-${project.version}-fat-no-preview.jar"))
 }

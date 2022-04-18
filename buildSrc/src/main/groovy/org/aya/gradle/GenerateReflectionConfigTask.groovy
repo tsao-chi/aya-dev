@@ -23,7 +23,7 @@ class GenerateReflectionConfigTask extends DefaultTask {
   private var pattern = Pattern.compile("\\{(\\d+)\\,\\s*(\\d+)\\}")
 
   @TaskAction def run() {
-    var lines = Files.readAllLines(inputFile.toPath()).stream()
+    var lines = Files.lines(inputFile.toPath())
       .filter(line -> !line.startsWith("#"))
       .filter(line -> !line.isEmpty())
       .flatMap(line -> expand(line).stream())
@@ -35,8 +35,8 @@ class GenerateReflectionConfigTask extends DefaultTask {
   def List<String> expand(String line) {
     var matcher = pattern.matcher(line)
     if (!matcher.find()) return List.of(line)
-    int start = java.lang.Integer.parseInt(matcher.group(1))
-    int end = java.lang.Integer.parseInt(matcher.group(2))
+    int start = matcher.group(1) as int
+    int end = matcher.group(2) as int
     var strip = line.substring(0, matcher.start())
     return IntStream.rangeClosed(start, end)
       .mapToObj(i -> String.format("%s%d", strip, i))

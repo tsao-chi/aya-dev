@@ -75,6 +75,7 @@ public class StripPreviewRunner {
   }
 
   public static void pack(Path outputPluginJar, List<Path> sources) throws IOException {
+    Files.deleteIfExists(outputPluginJar);
     var zip = Files.createFile(outputPluginJar);
     try (var zipStream = new ZipOutputStream(Files.newOutputStream(zip))) {
       for (var dir : sources) {

@@ -68,5 +68,6 @@ graalvmNative {
 
 tasks.named<org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask>("nativeCompile") {
   dependsOn(generateReflectionConfig)
+  dependsOn(tasks.named("fatJar"))
   classpathJar.set(file("build/libs/cli-${project.version}-fat-no-preview.jar"))
 }

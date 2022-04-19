@@ -8,6 +8,9 @@ dependencies {
   testImplementation("org.junit.jupiter", "junit-jupiter", version = deps.getProperty("version.junit"))
   testImplementation("org.hamcrest", "hamcrest", version = deps.getProperty("version.hamcrest"))
   testImplementation(project(":cli"))
+  // benchmark
+  testAnnotationProcessor("org.openjdk.jmh", "jmh-generator-annprocess", version = deps.getProperty("version.jmh"))
+  testImplementation("org.openjdk.jmh", "jmh-core", version = deps.getProperty("version.jmh"))
 }
 
 val genDir = file("src/main/gen")
@@ -41,4 +44,33 @@ tasks.register<JavaExec>("runCustomTest") {
   group = "Execution"
   classpath = sourceSets.test.get().runtimeClasspath
   main = "org.aya.test.TestRunner"
+}
+
+tasks.register<JavaExec>("bench") {
+  description = "Executes JMH micro-benchmarking"
+  group = "Execution"
+  mainClass.set("org.aya.test.ListBench")
+  classpath = sourceSets.test.get().runtimeClasspath
+  val resultFile = file("${project.buildDir}/bench/report.json").absoluteFile
+  val inputFiles = file("src/test/resources/bench").listFiles()?.map { it.absoluteFile }
+  args(resultFile)
+  if (inputFiles != null) {
+    args(inputFiles)
+  }
+
+  // Currently there is only one benchmark. But this should actually be only one of
+  // the many benchmarks grouped in a special task
+  workingDir = file("src/test/resources/bench")
+
+  doFirst {
+    resultFile.parentFile.mkdirs()
+  }
+}
+
+tasks.register<JavaExec>("jmhHelp") {
+  description = "Prints the available command line options for JMH."
+  mainClass.set("org.openjdk.jmh.Main")
+  group = "help"
+  classpath = sourceSets.test.get().runtimeClasspath
+  args("-h")
 }

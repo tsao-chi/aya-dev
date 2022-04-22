@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author ice1000
  */
-public sealed abstract class TopLevelDef implements Def permits UserDef, PrimDef {
+public sealed abstract class TopLevelDef implements Def, Def.DefWithTelescope permits UserDef, PrimDef {
   public final @NotNull ImmutableSeq<Term.Param> telescope;
   public final @NotNull Term result;
 

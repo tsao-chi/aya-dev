@@ -16,18 +16,15 @@ import org.jetbrains.annotations.NotNull;
 
 public final class StructDef extends UserDef.Type {
   public final @NotNull DefVar<StructDef, Decl.StructDecl> ref;
-  public final @NotNull ImmutableSeq<FieldDef> fields;
 
   public StructDef(
     @NotNull DefVar<StructDef, Decl.StructDecl> ref,
     @NotNull ImmutableSeq<Term.Param> telescope,
-    int ulift,
-    @NotNull ImmutableSeq<FieldDef> fields
+    int ulift
   ) {
     super(telescope, ulift);
     ref.core = this;
     this.ref = ref;
-    this.fields = fields;
   }
 
   @Override public <P, R> R accept(@NotNull Visitor<P, R> visitor, P p) {
